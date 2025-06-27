@@ -1,0 +1,28 @@
+.wrapper {
+  overflow-x: auto;
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.table {
+  width: 80%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  text-align: center;
+}
+
+thead {
+  background-color: #f3f3f3;
+}
+
+.empty {
+  font-style: italic;
+  color: #666;
+  padding: 1rem;
+}

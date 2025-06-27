@@ -1,0 +1,38 @@
+.header {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  background-color: #f0f2f5;
+  border-bottom: 1px solid #ddd;
+  justify-content: flex-start;
+  height: 2.5rem;
+  /* width: 100%; */
+}
+
+.select {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: white;
+}
+
+.backButton {
+  background-color: rgb(183, 208, 255);
+  border: 1px solid rgb(129, 129, 129);
+}
+
+.addButton {
+  background-color: rgb(203, 255, 183);
+  border: 1px solid rgb(129, 129, 129);
+}
+
+.editButton {
+  background-color: rgb(255, 230, 183);
+  border: 1px solid rgb(129, 129, 129);
+}
+
+.deleteButton {
+  background-color: rgb(255, 184, 163);
+  border: 1px solid rgb(129, 129, 129);
+}

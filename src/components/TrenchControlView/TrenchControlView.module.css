@@ -1,0 +1,26 @@
+.container {
+  max-width: 100%;
+  padding: 16px;
+  box-sizing: border-box;
+  overflow-x: auto;
+}
+
+.tableWrapper {
+  display: flex;
+  gap: 12px; /* расстояние между таблицами */
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.tableBlock {
+  flex-shrink: 0; /* чтобы таблицы не сжимались */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.tableBlock:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
