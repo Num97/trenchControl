@@ -9,11 +9,11 @@ import {
   Box,
 } from '@mui/material';
 
-interface FossModalProps {
+interface SieveModalProps {
   open: boolean;
   onClose: () => void;
   selectedTrenchControlId: number | null;
-  onAddFossData: (newItem: any) => void;
+  onAddSieveData: (newItem: any) => void;
 }
 
 function getLocalDateTime() {
@@ -26,36 +26,28 @@ function getLocalDateTime() {
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
-const FossModal: React.FC<FossModalProps> = ({
+const SieveModal: React.FC<SieveModalProps> = ({
   open,
   onClose,
   selectedTrenchControlId,
-  onAddFossData,
+  onAddSieveData,
 }) => {
   const [formData, setFormData] = useState({
     date_time: getLocalDateTime(),
-    dry_matter: '',
-    protein: '',
-    starch: '',
-    raw_fat: '',
-    adf: '',
-    ndf: '',
-    ash: '',
-    field: '',
+    high: '',
+    middle: '',
+    low: '',
+    pallet: '',
   });
 
   useEffect(() => {
     if (open) {
       setFormData({
         date_time: getLocalDateTime(),
-        dry_matter: '',
-        protein: '',
-        starch: '',
-        raw_fat: '',
-        adf: '',
-        ndf: '',
-        ash: '',
-        field: '',
+        high: '',
+        middle: '',
+        low: '',
+        pallet: '',
       });
     }
   }, [open]);
@@ -77,19 +69,14 @@ const FossModal: React.FC<FossModalProps> = ({
     const payload = {
       trench_control_id: selectedTrenchControlId,
       date_time: new Date(formData.date_time).toISOString(),
-
-      dry_matter: formData.dry_matter ? parseFloat(formData.dry_matter) : null,
-      protein: formData.protein ? parseFloat(formData.protein) : null,
-      starch: formData.starch ? parseFloat(formData.starch) : null,
-      raw_fat: formData.raw_fat ? parseFloat(formData.raw_fat) : null,
-      adf: formData.adf ? parseFloat(formData.adf) : null,
-      ndf: formData.ndf ? parseFloat(formData.ndf) : null,
-      ash: formData.ash ? parseFloat(formData.ash) : null,
-      field: formData.field || null,
+      high: formData.high ? parseFloat(formData.high) : null,
+      middle: formData.middle ? parseFloat(formData.middle) : null,
+      low: formData.low ? parseFloat(formData.low) : null,
+      pallet: formData.pallet ? parseFloat(formData.pallet) : null,
     };
 
     try {
-      const response = await fetch('/api/v1/trench/foss_data', {
+      const response = await fetch('/api/v1/trench/sieve/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -97,12 +84,11 @@ const FossModal: React.FC<FossModalProps> = ({
 
       const data = await response.json();
       if (response.ok) {
-        alert('FOSS-запись успешно добавлена');
-          onAddFossData({
-            id: data.id,
-            ...payload,
-            trench_control_id: selectedTrenchControlId,
-            date_time: new Date(payload.date_time),
+        alert('Sieve-запись успешно добавлена');
+        onAddSieveData({
+          id: data.id,
+          ...payload,
+          date_time: new Date(payload.date_time),
         });
         onClose();
       } else {
@@ -115,7 +101,7 @@ const FossModal: React.FC<FossModalProps> = ({
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle>Добавить FOSS-запись</DialogTitle>
+      <DialogTitle>Добавить Sieve-запись</DialogTitle>
       <DialogContent>
         <Box
           sx={{
@@ -136,14 +122,10 @@ const FossModal: React.FC<FossModalProps> = ({
             required
             InputProps={{ readOnly: true }}
           />
-          <TextField label="Сухое вещество (%)" name="dry_matter" type="number" value={formData.dry_matter} onChange={handleChange} fullWidth />
-          <TextField label="Белок (%)" name="protein" type="number" value={formData.protein} onChange={handleChange} fullWidth />
-          <TextField label="Крахмал (%)" name="starch" type="number" value={formData.starch} onChange={handleChange} fullWidth />
-          <TextField label="Сырой жир (%)" name="raw_fat" type="number" value={formData.raw_fat} onChange={handleChange} fullWidth />
-          <TextField label="КДК" name="adf" type="number" value={formData.adf} onChange={handleChange} fullWidth />
-          <TextField label="НДК" name="ndf" type="number" value={formData.ndf} onChange={handleChange} fullWidth />
-          <TextField label="Зола" name="ash" type="number" value={formData.ash} onChange={handleChange} fullWidth />
-          <TextField label="Поле" name="field" value={formData.field} onChange={handleChange} fullWidth />
+          <TextField label="Верхнее" name="high" type="number" value={formData.high} onChange={handleChange} fullWidth />
+          <TextField label="Среднее" name="middle" type="number" value={formData.middle} onChange={handleChange} fullWidth />
+          <TextField label="Нижнее" name="low" type="number" value={formData.low} onChange={handleChange} fullWidth />
+          <TextField label="Поддон" name="pallet" type="number" value={formData.pallet} onChange={handleChange} fullWidth />
         </Box>
       </DialogContent>
       <DialogActions>
@@ -156,4 +138,4 @@ const FossModal: React.FC<FossModalProps> = ({
   );
 };
 
-export default FossModal;
+export default SieveModal;

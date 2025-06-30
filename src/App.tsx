@@ -20,6 +20,8 @@ function App() {
   const [selectedFossRowId, setSelectedFossRowId] = useState<number | null>(null);
   const [selectedSieveRowId, setSelectedSieveRowId] = useState<number | null>(null);
 
+  const [selectedTrenchControlId, setSelectedTrenchControlId] = useState<number | null>(null);
+
   const handleAddTrenchControl = (newItem: TrenchControl) => {
     setTrenchControl(prev => {
       const updated = [...prev, newItem];
@@ -34,6 +36,13 @@ function App() {
   const handleAddFossData = (newItem: FossData) => {
     // setFossData(prev => [...prev, newItem]);
       setFossData(prev => {
+    const updated = [...prev, newItem];
+    return updated.sort((a, b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime());
+  });
+  };
+
+  const handleAddSieveData = (newItem: Sieve) => {
+      setSieveData(prev => {
     const updated = [...prev, newItem];
     return updated.sort((a, b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime());
   });
@@ -115,16 +124,18 @@ function App() {
         selectedSieveRowId={selectedSieveRowId}
         onAddTrenchControl={handleAddTrenchControl}
         onAddFossData={handleAddFossData}
+        onAddSieveData={handleAddSieveData}
+        selectedTrenchControlId={selectedTrenchControlId}
+        setTrenchControlData={setTrenchControl}
+        setSelectedTrenchControlId={setSelectedTrenchControlId}
       />
 
         {selectedSieveRowId ? (
           <div>
-            {/* <button onClick={handleBack}>Назад</button> */}
             <SieveDataDetails data={sieve.filter(s => s.trench_control_id === selectedSieveRowId)} />
           </div>
         ) : selectedFossRowId ? (
           <div>
-            {/* <button onClick={handleBack}>Назад</button> */}
             <FossDataDetails data={foss.filter(f => f.trench_control_id === selectedFossRowId)} />
           </div>
         ) : (
@@ -134,6 +145,8 @@ function App() {
             sieve={sieve}
             onFossRowClick={handleFossRowClick}
             onSieveRowClick={handleSieveRowClick}
+            selectedTrenchControlId={selectedTrenchControlId}
+            setSelectedTrenchControlId={setSelectedTrenchControlId}
           />
         )}
 

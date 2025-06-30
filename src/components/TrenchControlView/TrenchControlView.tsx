@@ -11,14 +11,27 @@ interface Props {
   sieve: Sieve[];
   onFossRowClick: (id: number) => void;
   onSieveRowClick: (id: number) => void;
+  selectedTrenchControlId: number | null;
+  setSelectedTrenchControlId: React.Dispatch<React.SetStateAction<number | null>>;
 }
 
-const TrenchControlView: React.FC<Props> = ({ data, foss, sieve, onFossRowClick, onSieveRowClick }) => {
+const TrenchControlView: React.FC<Props> = ({ 
+  data, 
+  foss, 
+  sieve, 
+  onFossRowClick, 
+  onSieveRowClick,   
+  selectedTrenchControlId,
+  setSelectedTrenchControlId, 
+}) => {
   return (
     <div className={styles.container}>
       <div className={styles.tableWrapper}>
         <div className={styles.tableBlock}>
-          <TrenchControlTable data={data} />
+          <TrenchControlTable data={data} 
+            selectedTrenchControlId={selectedTrenchControlId}
+            setSelectedTrenchControlId={setSelectedTrenchControlId}
+          />
         </div>
         <div className={styles.tableBlock}>
           <FossTable data={data} foss={foss} onRowClick={onFossRowClick} />

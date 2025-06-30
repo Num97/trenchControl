@@ -1,9 +1,10 @@
-import type { Farms, Trenches, TrenchControl, FossData } from '../../types/form';
+import type { Farms, Trenches, TrenchControl, FossData, Sieve } from '../../types/form';
 import styles from './Header.module.css';
 import { useEffect, useState } from 'react';
 
 import TrenchControlModal from '../TrenchControlModal/TrenchControlModal';
 import FossModal from '../FossModal/FossModal';
+import SieveModal from '../SieveModal/SieveModal';
 
 
 interface HeaderProps {
@@ -21,6 +22,10 @@ interface HeaderProps {
   selectedSieveRowId: number | null;
   onAddTrenchControl: (newItem: TrenchControl) => void;
   onAddFossData: (newItem: FossData) => void;
+  onAddSieveData: (newItem: Sieve) => void;
+  selectedTrenchControlId: number | null;
+  setTrenchControlData: React.Dispatch<React.SetStateAction<TrenchControl[]>>;
+  setSelectedTrenchControlId: React.Dispatch<React.SetStateAction<number | null>>;
 }
 
 function Header({
@@ -38,6 +43,10 @@ function Header({
   selectedSieveRowId,
   onAddTrenchControl,
   onAddFossData,
+  onAddSieveData,
+  selectedTrenchControlId,
+  setTrenchControlData,
+  setSelectedTrenchControlId, 
 }: HeaderProps) {
   const currentYear = new Date().getFullYear();
   const seasonOptions = Array.from({ length: 4 }, (_, i) => currentYear - i);
@@ -46,17 +55,19 @@ function Header({
   
   const [openTrenchModal, setOpenTrenchModal] = useState(false);
   const [openFossModal, setOpenFossModal] = useState(false);
+  const [openSieveModal, setOpenSieveModal] = useState(false);
+
+  const [confirmTrenchControlDelete, setConfirmTrenchControlDelete] = useState(false);
+
 
 
     const handleAddClick = () => {
     if (selectedFossRowId) {
-      console.log('Модальное окно FOSS');
-      setOpenFossModal(true); // Открываем модалку FOSS
+      setOpenFossModal(true);
       return;
     }
     if (selectedSieveRowId) {
-      console.log('Модальное окно сито');
-      // Здесь можно добавить логику открытия модалки Сито
+      setOpenSieveModal(true);
       return;
     }
     if (selectedTrenchId === null) {
@@ -78,6 +89,57 @@ function Header({
       }
     }
   }, [selectedFarmId, trenches, selectedTrenchId]);
+
+  // удаление
+
+    const handleDeleteClick = () => {
+    if (selectedFossRowId) {
+      console.log('Удаление FOSS не реализовано');
+      return;
+    }
+    if (selectedSieveRowId) {
+      console.log('Удаление Sieve не реализовано');
+      return;
+    }
+    if (selectedTrenchControlId === null) {
+      alert('Пожалуйста, выберите запись заготовки для удаления.');
+      return;
+    }
+
+    const confirmed = window.confirm('Вы уверены, что хотите удалить эту запись и все связанные с ней данные?');
+
+    if (confirmed) {
+      setConfirmTrenchControlDelete(true); // состояние, которое запустит useEffect
+    }
+  };
+
+  useEffect(() => {
+  if (!confirmTrenchControlDelete || selectedTrenchControlId === null) return;
+
+  const deleteTrenchControl = async () => {
+    try {
+      const response = await fetch(`/api/v1/trench/trench_control/${selectedTrenchControlId}`, {
+        method: 'DELETE',
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('Запись успешно удалена');
+        setTrenchControlData(prev => prev.filter(item => item.id !== selectedTrenchControlId));
+        setSelectedTrenchControlId(null);
+      } else {
+        alert(`Ошибка удаления: ${data.error}`);
+      }
+    } catch (err) {
+      alert(`Ошибка сети: ${err}`);
+    } finally {
+      setConfirmTrenchControlDelete(false); // сброс триггера
+    }
+  };
+
+  deleteTrenchControl();
+}, [confirmTrenchControlDelete]);
+
 
   return (
     <header className={styles.header}>
@@ -142,7 +204,7 @@ function Header({
           Редактировать
         </button>
 
-        <button className={styles.deleteButton}>
+        <button className={styles.deleteButton} onClick={handleDeleteClick}>
           Удалить
         </button>
 
@@ -166,7 +228,16 @@ function Header({
           onAddFossData={(newItem) => {
             onAddFossData(newItem);
             setOpenFossModal(false);
-            // или можно передать через пропс в App
+          }}
+        />
+
+        <SieveModal
+          open={openSieveModal}
+          onClose={() => setOpenSieveModal(false)}
+          selectedTrenchControlId={selectedSieveRowId as number}
+          onAddSieveData={(newItem) => {
+            onAddSieveData(newItem);
+            setOpenSieveModal(false);
           }}
         />
 
