@@ -4,9 +4,14 @@ import styles from './FossDataDetails.module.css';
 
 interface Props {
   data: FossData[];
+  selectedFossId: number | null;
+  setSelectedFossId: React.Dispatch<React.SetStateAction<number | null>>;
 }
 
-const FossDataDetails: React.FC<Props> = ({ data }) => {
+const FossDataDetails: React.FC<Props> = ({
+                                    data,
+                                    selectedFossId,
+                                    setSelectedFossId, }) => {
   if (data.length === 0) {
     return <div className={styles.empty}>Нет подробных данных FOSS</div>;
   }
@@ -32,7 +37,14 @@ const FossDataDetails: React.FC<Props> = ({ data }) => {
         </thead>
         <tbody>
           {data.map((entry) => (
-            <tr key={entry.id}>
+            // <tr key={entry.id}>
+            <tr
+              key={entry.id}
+              onClick={() =>
+                setSelectedFossId((prevId) => (prevId === entry.id ? null : entry.id))
+              }
+              className={entry.id === selectedFossId ? styles.selectedRow : styles.row}
+            >
               <td>{entry.field ?? '-'}</td>
               <td>
                 {new Date(entry.date_time).toLocaleString(undefined, {

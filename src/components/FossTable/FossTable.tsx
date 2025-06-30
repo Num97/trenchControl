@@ -8,7 +8,7 @@ interface Props {
   onRowClick: (trenchControlId: number) => void;
 }
 
-const FossTable: React.FC<Props> = ({ data, foss, onRowClick }) => {
+const FossTable: React.FC<Props> = ({ data, foss, onRowClick}) => {
   type NumericKeys = Extract<keyof FossData, 'dry_matter' | 'protein' | 'starch' | 'adf' | 'ndf' | 'ash' | 'raw_fat'>;
 
   const getAvg = (entries: FossData[], key: NumericKeys): string => {

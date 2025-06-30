@@ -4,9 +4,11 @@ import styles from './SieveDataDetails.module.css';
 
 interface Props {
   data: Sieve[];
+  selectedSieveId: number | null;
+  setSelectedSieveId: React.Dispatch<React.SetStateAction<number | null>>;
 }
 
-const SieveDataDetails: React.FC<Props> = ({ data }) => {
+const SieveDataDetails: React.FC<Props> = ({ data, selectedSieveId, setSelectedSieveId}) => {
   if (data.length === 0) {
     return <div className={styles.empty}>Нет подробных данных сито</div>;
   }
@@ -28,7 +30,14 @@ const SieveDataDetails: React.FC<Props> = ({ data }) => {
         </thead>
         <tbody>
           {data.map((entry) => (
-            <tr key={entry.id}>
+            // <tr key={entry.id}>
+            <tr
+              key={entry.id}
+              onClick={() =>
+                setSelectedSieveId((prevId) => (prevId === entry.id ? null : entry.id))
+              }
+              className={entry.id === selectedSieveId ? styles.selectedRow : styles.row}
+            >
               <td>{new Date(entry.date_time).toLocaleString()}</td>
               <td>{entry.high ?? '-'}</td>
               <td>{entry.middle ?? '-'}</td>

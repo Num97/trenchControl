@@ -21,6 +21,8 @@ function App() {
   const [selectedSieveRowId, setSelectedSieveRowId] = useState<number | null>(null);
 
   const [selectedTrenchControlId, setSelectedTrenchControlId] = useState<number | null>(null);
+  const [selectedFossId, setSelectedFossId] = useState<number | null>(null);
+  const [selectedSieveId, setSelectedSieveId] = useState<number | null>(null);
 
   const handleAddTrenchControl = (newItem: TrenchControl) => {
     setTrenchControl(prev => {
@@ -34,7 +36,6 @@ function App() {
   };
 
   const handleAddFossData = (newItem: FossData) => {
-    // setFossData(prev => [...prev, newItem]);
       setFossData(prev => {
     const updated = [...prev, newItem];
     return updated.sort((a, b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime());
@@ -128,15 +129,29 @@ function App() {
         selectedTrenchControlId={selectedTrenchControlId}
         setTrenchControlData={setTrenchControl}
         setSelectedTrenchControlId={setSelectedTrenchControlId}
+        selectedFossId={selectedFossId}
+        setSelectedFossId={setSelectedFossId}
+        selectedSieveId={selectedSieveId}
+        setSelectedSieveId={setSelectedSieveId}
+        setFossData={setFossData}
+        setSieveData={setSieveData}
       />
 
         {selectedSieveRowId ? (
           <div>
-            <SieveDataDetails data={sieve.filter(s => s.trench_control_id === selectedSieveRowId)} />
+            <SieveDataDetails 
+              data={sieve.filter(s => s.trench_control_id === selectedSieveRowId)} 
+              selectedSieveId={selectedSieveId}
+              setSelectedSieveId={setSelectedSieveId}
+            />
           </div>
         ) : selectedFossRowId ? (
           <div>
-            <FossDataDetails data={foss.filter(f => f.trench_control_id === selectedFossRowId)} />
+            <FossDataDetails 
+                data={foss.filter(f => f.trench_control_id === selectedFossRowId)}
+                selectedFossId={selectedFossId}
+                setSelectedFossId={setSelectedFossId}
+            />
           </div>
         ) : (
           <TrenchControlView

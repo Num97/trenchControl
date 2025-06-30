@@ -22,7 +22,7 @@ const TrenchControlView: React.FC<Props> = ({
   onFossRowClick, 
   onSieveRowClick,   
   selectedTrenchControlId,
-  setSelectedTrenchControlId, 
+  setSelectedTrenchControlId,
 }) => {
   return (
     <div className={styles.container}>
@@ -34,7 +34,10 @@ const TrenchControlView: React.FC<Props> = ({
           />
         </div>
         <div className={styles.tableBlock}>
-          <FossTable data={data} foss={foss} onRowClick={onFossRowClick} />
+          <FossTable data={data}
+              foss={foss}
+              onRowClick={onFossRowClick}
+            />
         </div>
         <div className={styles.tableBlock}>
           <SieveTable data={data} sieve={sieve} onRowClick={onSieveRowClick} />

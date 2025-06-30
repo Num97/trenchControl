@@ -26,6 +26,12 @@ interface HeaderProps {
   selectedTrenchControlId: number | null;
   setTrenchControlData: React.Dispatch<React.SetStateAction<TrenchControl[]>>;
   setSelectedTrenchControlId: React.Dispatch<React.SetStateAction<number | null>>;
+  selectedFossId: number | null;
+  setSelectedFossId: React.Dispatch<React.SetStateAction<number | null>>;
+  selectedSieveId: number | null;
+  setSelectedSieveId: React.Dispatch<React.SetStateAction<number | null>>;
+  setFossData: React.Dispatch<React.SetStateAction<FossData[]>>;
+  setSieveData: React.Dispatch<React.SetStateAction<Sieve[]>>;
 }
 
 function Header({
@@ -46,7 +52,13 @@ function Header({
   onAddSieveData,
   selectedTrenchControlId,
   setTrenchControlData,
-  setSelectedTrenchControlId, 
+  setSelectedTrenchControlId,
+  selectedFossId,
+  setSelectedFossId,
+  selectedSieveId,
+  setSelectedSieveId,
+  setFossData,
+  setSieveData,
 }: HeaderProps) {
   const currentYear = new Date().getFullYear();
   const seasonOptions = Array.from({ length: 4 }, (_, i) => currentYear - i);
@@ -58,6 +70,8 @@ function Header({
   const [openSieveModal, setOpenSieveModal] = useState(false);
 
   const [confirmTrenchControlDelete, setConfirmTrenchControlDelete] = useState(false);
+  const [confirmFossDelete, setConfirmFossDelete] = useState(false);
+  const [confirmSieveDelete, setConfirmSieveDelete] = useState(false);
 
 
 
@@ -92,27 +106,36 @@ function Header({
 
   // удаление
 
-    const handleDeleteClick = () => {
-    if (selectedFossRowId) {
-      console.log('Удаление FOSS не реализовано');
-      return;
-    }
-    if (selectedSieveRowId) {
-      console.log('Удаление Sieve не реализовано');
-      return;
-    }
-    if (selectedTrenchControlId === null) {
-      alert('Пожалуйста, выберите запись заготовки для удаления.');
+  const handleDeleteClick = () => {
+    const canDeleteFoss = selectedFossRowId !== null && selectedFossId !== null;
+    const canDeleteSieve = selectedSieveRowId !== null && selectedSieveId !== null;
+    const canDeleteTrench = selectedTrenchControlId !== null && !selectedFossRowId && !selectedSieveRowId;
+
+    if (!canDeleteFoss && !canDeleteSieve && !canDeleteTrench) {
+      alert('Пожалуйста, выберите запись для удаления.');
       return;
     }
 
     const confirmed = window.confirm('Вы уверены, что хотите удалить эту запись и все связанные с ней данные?');
+    if (!confirmed) return;
 
-    if (confirmed) {
-      setConfirmTrenchControlDelete(true); // состояние, которое запустит useEffect
+    if (canDeleteFoss) {
+      setConfirmFossDelete(true);
+      return;
+    }
+
+    if (canDeleteSieve) {
+      setConfirmSieveDelete(true);
+      return;
+    }
+
+    if (canDeleteTrench) {
+      setConfirmTrenchControlDelete(true);
+      return;
     }
   };
 
+  // useEffect для удаления строки контроля
   useEffect(() => {
   if (!confirmTrenchControlDelete || selectedTrenchControlId === null) return;
 
@@ -139,6 +162,64 @@ function Header({
 
   deleteTrenchControl();
 }, [confirmTrenchControlDelete]);
+
+// useEffect для удаления строки FOSS
+
+  useEffect(() => {
+  if (!confirmFossDelete || selectedFossId === null) return;
+
+  const deleteFoss = async () => {
+    try {
+      const response = await fetch(`/api/v1/trench/foss_data/${selectedFossId}`, {
+        method: 'DELETE',
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('Запись успешно удалена');
+        setFossData(prev => prev.filter(item => item.id !== selectedFossId));
+        setSelectedFossId(null);
+      } else {
+        alert(`Ошибка удаления: ${data.error}`);
+      }
+    } catch (err) {
+      alert(`Ошибка сети: ${err}`);
+    } finally {
+      setConfirmFossDelete(false); // сброс триггера
+    }
+  };
+
+  deleteFoss();
+}, [confirmFossDelete]);
+
+// useEffect для удаления строки Sieve
+
+  useEffect(() => {
+  if (!confirmSieveDelete || selectedSieveId === null) return;
+
+  const deleteSieve = async () => {
+    try {
+      const response = await fetch(`/api/v1/trench/sieve/${selectedSieveId}`, {
+        method: 'DELETE',
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('Запись успешно удалена');
+        setSieveData(prev => prev.filter(item => item.id !== selectedSieveId));
+        setSelectedSieveId(null);
+      } else {
+        alert(`Ошибка удаления: ${data.error}`);
+      }
+    } catch (err) {
+      alert(`Ошибка сети: ${err}`);
+    } finally {
+      setConfirmSieveDelete(false); // сброс триггера
+    }
+  };
+
+  deleteSieve();
+}, [confirmSieveDelete]);
 
 
   return (

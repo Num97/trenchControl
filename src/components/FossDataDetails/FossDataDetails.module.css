@@ -26,3 +26,13 @@ thead {
   color: #666;
   padding: 1rem;
 }
+
+.row:hover {
+  cursor: pointer;
+  background-color: #d7ecff;
+}
+
+.selectedRow {
+  background-color: #fff2c6;
+  cursor: pointer;
+}
