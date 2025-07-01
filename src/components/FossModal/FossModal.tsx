@@ -8,16 +8,20 @@ import {
   TextField,
   Box,
 } from '@mui/material';
+import type { FossData } from '../../types/form';
 
 interface FossModalProps {
   open: boolean;
   onClose: () => void;
   selectedTrenchControlId: number | null;
-  onAddFossData: (newItem: any) => void;
+  onAddFossData: (newItem: FossData) => void;
+  mode: 'create' | 'edit';
+  existingFossData?: FossData | null;
+  onUpdateFossData?: (updatedItem: FossData) => void;
 }
 
-function getLocalDateTime() {
-  const now = new Date();
+function getLocalDateTime(date?: Date) {
+  const now = date ? new Date(date) : new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
@@ -31,6 +35,9 @@ const FossModal: React.FC<FossModalProps> = ({
   onClose,
   selectedTrenchControlId,
   onAddFossData,
+  mode,
+  existingFossData = null,
+  onUpdateFossData,
 }) => {
   const [formData, setFormData] = useState({
     date_time: getLocalDateTime(),
@@ -46,26 +53,37 @@ const FossModal: React.FC<FossModalProps> = ({
 
   useEffect(() => {
     if (open) {
-      setFormData({
-        date_time: getLocalDateTime(),
-        dry_matter: '',
-        protein: '',
-        starch: '',
-        raw_fat: '',
-        adf: '',
-        ndf: '',
-        ash: '',
-        field: '',
-      });
+      if (mode === 'edit' && existingFossData) {
+        setFormData({
+          date_time: getLocalDateTime(new Date(existingFossData.date_time)),
+          dry_matter: existingFossData.dry_matter?.toString() ?? '',
+          protein: existingFossData.protein?.toString() ?? '',
+          starch: existingFossData.starch?.toString() ?? '',
+          raw_fat: existingFossData.raw_fat?.toString() ?? '',
+          adf: existingFossData.adf?.toString() ?? '',
+          ndf: existingFossData.ndf?.toString() ?? '',
+          ash: existingFossData.ash?.toString() ?? '',
+          field: existingFossData.field ?? '',
+        });
+      } else {
+        setFormData({
+          date_time: getLocalDateTime(),
+          dry_matter: '',
+          protein: '',
+          starch: '',
+          raw_fat: '',
+          adf: '',
+          ndf: '',
+          ash: '',
+          field: '',
+        });
+      }
     }
-  }, [open]);
+  }, [open, mode, existingFossData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async () => {
@@ -77,7 +95,6 @@ const FossModal: React.FC<FossModalProps> = ({
     const payload = {
       trench_control_id: selectedTrenchControlId,
       date_time: new Date(formData.date_time).toISOString(),
-
       dry_matter: formData.dry_matter ? parseFloat(formData.dry_matter) : null,
       protein: formData.protein ? parseFloat(formData.protein) : null,
       starch: formData.starch ? parseFloat(formData.starch) : null,
@@ -89,24 +106,37 @@ const FossModal: React.FC<FossModalProps> = ({
     };
 
     try {
-      const response = await fetch('/api/v1/trench/foss_data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        alert('FOSS-запись успешно добавлена');
-          onAddFossData({
-            id: data.id,
-            ...payload,
-            trench_control_id: selectedTrenchControlId,
-            date_time: new Date(payload.date_time),
+      let response, data;
+      if (mode === 'create') {
+        response = await fetch('/api/v1/trench/foss_data', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
         });
-        onClose();
-      } else {
-        alert(`Ошибка: ${data.error}`);
+        data = await response.json();
+
+        if (response.ok) {
+          alert('FOSS-запись успешно добавлена');
+          onAddFossData({ id: data.id, ...payload, date_time: new Date(payload.date_time) });
+          onClose();
+        } else {
+          alert(`Ошибка: ${data.error}`);
+        }
+      } else if (mode === 'edit' && existingFossData) {
+        response = await fetch(`/api/v1/trench/foss_data/${existingFossData.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        data = await response.json();
+
+        if (response.ok) {
+          alert('FOSS-запись успешно обновлена');
+          onUpdateFossData?.({ id: existingFossData.id, ...payload, date_time: new Date(payload.date_time) });
+          onClose();
+        } else {
+          alert(`Ошибка обновления: ${data.error}`);
+        }
       }
     } catch (error) {
       alert(`Ошибка отправки: ${error}`);
@@ -115,7 +145,7 @@ const FossModal: React.FC<FossModalProps> = ({
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle>Добавить FOSS-запись</DialogTitle>
+      <DialogTitle>{mode === 'edit' ? 'Редактировать FOSS-запись' : 'Добавить FOSS-запись'}</DialogTitle>
       <DialogContent>
         <Box
           sx={{

@@ -12,13 +12,27 @@ import {
 
 interface Props {
   open: boolean;
+  mode: 'create' | 'edit';
   onClose: () => void;
   selectedSeason: number;
   selectedTrenchId: number | null;
+  selectedTrenchControlId: number | null;
+  initialData?: TrenchControl;
   onAddTrenchControl: (newItem: TrenchControl) => void;
+  onUpdateTrenchControl: (updatedItem: TrenchControl) => void;
 }
 
-const TrenchControlModal: React.FC<Props> = ({ open, onClose, selectedSeason, selectedTrenchId, onAddTrenchControl }) => {
+const TrenchControlModal: React.FC<Props> = ({
+  open,
+  mode,
+  onClose,
+  selectedSeason,
+  selectedTrenchId,
+  selectedTrenchControlId,
+  initialData,
+  onAddTrenchControl,
+  onUpdateTrenchControl,
+}) => {
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     crop: '',
@@ -30,20 +44,33 @@ const TrenchControlModal: React.FC<Props> = ({ open, onClose, selectedSeason, se
     weight: '',
   });
 
-    useEffect(() => {
+  useEffect(() => {
     if (open) {
-      setFormData({
-        date: new Date().toISOString().split('T')[0], // текущая дата
-        crop: '',
-        weather: '',
-        temp_trench: '',
-        left_edge_temp: '',
-        middle_temp: '',
-        right_edge_temp: '',
-        weight: '',
-      });
+      if (mode === 'edit' && initialData) {
+        setFormData({
+          date: initialData.date ? new Date(initialData.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          crop: initialData.crop ?? '',
+          weather: initialData.weather ?? '',
+          temp_trench: initialData.temp_trench?.toString() ?? '',
+          left_edge_temp: initialData.left_edge_temp?.toString() ?? '',
+          middle_temp: initialData.middle_temp?.toString() ?? '',
+          right_edge_temp: initialData.right_edge_temp?.toString() ?? '',
+          weight: initialData.weight?.toString() ?? '',
+        });
+      } else {
+        setFormData({
+          date: new Date().toISOString().split('T')[0],
+          crop: '',
+          weather: '',
+          temp_trench: '',
+          left_edge_temp: '',
+          middle_temp: '',
+          right_edge_temp: '',
+          weight: '',
+        });
+      }
     }
-  }, [open]);
+  }, [open, mode, initialData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -54,43 +81,65 @@ const TrenchControlModal: React.FC<Props> = ({ open, onClose, selectedSeason, se
   };
 
   const handleSubmit = async () => {
-    try {
-      if (!formData.date) {
-        alert('Поле "Дата" обязательно');
-        return;
-      }
+    if (!formData.date) {
+      alert('Поле "Дата" обязательно');
+      return;
+    }
 
     const payload = {
-    date: formData.date,
-    crop: formData.crop || null,
-    weather: formData.weather || null,
-    temp_trench: formData.temp_trench ? parseFloat(formData.temp_trench) : null,
-    left_edge_temp: formData.left_edge_temp ? parseFloat(formData.left_edge_temp) : null,
-    middle_temp: formData.middle_temp ? parseFloat(formData.middle_temp) : null,
-    right_edge_temp: formData.right_edge_temp ? parseFloat(formData.right_edge_temp) : null,
-    weight: formData.weight ? parseFloat(formData.weight) : null,
-    season: selectedSeason,
-    trench_id: selectedTrenchId,
+      date: formData.date,
+      crop: formData.crop || null,
+      weather: formData.weather || null,
+      temp_trench: formData.temp_trench ? parseFloat(formData.temp_trench) : null,
+      left_edge_temp: formData.left_edge_temp ? parseFloat(formData.left_edge_temp) : null,
+      middle_temp: formData.middle_temp ? parseFloat(formData.middle_temp) : null,
+      right_edge_temp: formData.right_edge_temp ? parseFloat(formData.right_edge_temp) : null,
+      weight: formData.weight ? parseFloat(formData.weight) : null,
+      season: selectedSeason,
+      trench_id: selectedTrenchId,
     };
 
-      const response = await fetch('/api/v1/trench/trench_control', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+    try {
+      if (mode === 'create') {
+        const response = await fetch('/api/v1/trench/trench_control', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
 
-      const data = await response.json();
-      if (response.ok) {
-        alert('Запись успешно добавлена');
-        onAddTrenchControl({
+        const data = await response.json();
+        if (response.ok) {
+          alert('Запись успешно добавлена');
+          onAddTrenchControl({
             id: data.id,
             ...payload,
+            date: new Date(payload.date),
             trench_id: selectedTrenchId as number,
-            date: new Date(payload.date), 
-            });
-        onClose();
-      } else {
-        alert(`Ошибка: ${data.error}`);
+          });
+          onClose();
+        } else {
+          alert(`Ошибка: ${data.error}`);
+        }
+      } else if (mode === 'edit' && selectedTrenchControlId !== null) {
+        const response = await fetch(`/api/v1/trench/trench_control/${selectedTrenchControlId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          alert('Запись успешно обновлена');
+          onUpdateTrenchControl({
+            id: selectedTrenchControlId,
+            ...payload,
+            date: new Date(payload.date),
+            trench_id: selectedTrenchId as number,
+          });
+          onClose();
+        } else {
+          alert(`Ошибка обновления: ${data.error}`);
+        }
       }
     } catch (error) {
       alert(`Ошибка отправки: ${error}`);
@@ -99,7 +148,9 @@ const TrenchControlModal: React.FC<Props> = ({ open, onClose, selectedSeason, se
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle>Добавить запись заготовки</DialogTitle>
+      <DialogTitle>
+        {mode === 'edit' ? 'Редактировать запись заготовки' : 'Добавить запись заготовки'}
+      </DialogTitle>
       <DialogContent>
         <Box
           sx={{
@@ -186,4 +237,3 @@ const TrenchControlModal: React.FC<Props> = ({ open, onClose, selectedSeason, se
 };
 
 export default TrenchControlModal;
-

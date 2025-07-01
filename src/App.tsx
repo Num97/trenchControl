@@ -35,6 +35,17 @@ function App() {
     });
   };
 
+  const handleUpdateTrenchControl = (updatedItem: TrenchControl) => {
+    setTrenchControl(prev => {
+      const updated = prev.map(item => item.id === updatedItem.id ? updatedItem : item);
+      return updated.sort((a, b) => {
+        const dateA = a.date ? new Date(a.date).getTime() : 0;
+        const dateB = b.date ? new Date(b.date).getTime() : 0;
+        return dateB - dateA;
+      });
+    });
+  };
+
   const handleAddFossData = (newItem: FossData) => {
       setFossData(prev => {
     const updated = [...prev, newItem];
@@ -60,6 +71,8 @@ function App() {
   const handleBack = () => {
     setSelectedFossRowId(null);
     setSelectedSieveRowId(null);
+    setSelectedFossId(null);
+    setSelectedSieveId(null);
   };
 
   useEffect(() => {
@@ -135,6 +148,10 @@ function App() {
         setSelectedSieveId={setSelectedSieveId}
         setFossData={setFossData}
         setSieveData={setSieveData}
+        onUpdateTrenchControl={handleUpdateTrenchControl}
+        trenchControlData={trenchControl}
+        fossData={foss}
+        sieveData={sieve}
       />
 
         {selectedSieveRowId ? (

@@ -6,7 +6,6 @@ import TrenchControlModal from '../TrenchControlModal/TrenchControlModal';
 import FossModal from '../FossModal/FossModal';
 import SieveModal from '../SieveModal/SieveModal';
 
-
 interface HeaderProps {
   farms: Farms[];
   trenches: Trenches[];
@@ -32,6 +31,10 @@ interface HeaderProps {
   setSelectedSieveId: React.Dispatch<React.SetStateAction<number | null>>;
   setFossData: React.Dispatch<React.SetStateAction<FossData[]>>;
   setSieveData: React.Dispatch<React.SetStateAction<Sieve[]>>;
+  onUpdateTrenchControl: (updatedItem: TrenchControl) => void;
+  trenchControlData: TrenchControl[];
+  fossData: FossData[],
+  sieveData: Sieve[],
 }
 
 function Header({
@@ -59,28 +62,40 @@ function Header({
   setSelectedSieveId,
   setFossData,
   setSieveData,
+  onUpdateTrenchControl,
+  trenchControlData,
+  fossData,
+  sieveData,
 }: HeaderProps) {
   const currentYear = new Date().getFullYear();
   const seasonOptions = Array.from({ length: 4 }, (_, i) => currentYear - i);
 
   const filteredTrenches = trenches.filter((t) => t.farm_id === selectedFarmId);
-  
+
   const [openTrenchModal, setOpenTrenchModal] = useState(false);
   const [openFossModal, setOpenFossModal] = useState(false);
   const [openSieveModal, setOpenSieveModal] = useState(false);
+  const [mode, setMode] = useState<'create' | 'edit'>('create');
 
   const [confirmTrenchControlDelete, setConfirmTrenchControlDelete] = useState(false);
   const [confirmFossDelete, setConfirmFossDelete] = useState(false);
   const [confirmSieveDelete, setConfirmSieveDelete] = useState(false);
 
+  const canEdit =
+  (selectedFossRowId !== null && selectedFossId !== null) ||
+  (selectedSieveRowId !== null && selectedSieveId !== null) ||
+  (selectedTrenchControlId !== null && !selectedFossRowId && !selectedSieveRowId);
 
+  const canDelete = canEdit;
 
-    const handleAddClick = () => {
+  const handleAddClick = () => {
     if (selectedFossRowId) {
+      setMode('create');
       setOpenFossModal(true);
       return;
     }
     if (selectedSieveRowId) {
+      setMode('create');
       setOpenSieveModal(true);
       return;
     }
@@ -88,7 +103,36 @@ function Header({
       alert('Пожалуйста, выберите траншею перед добавлением записи.');
       return;
     }
+    setMode('create');
     setOpenTrenchModal(true);
+  };
+
+  const handleEditClick = () => {
+    const canEditFoss = selectedFossRowId !== null && selectedFossId !== null;
+    const canEditSieve = selectedSieveRowId !== null && selectedSieveId !== null;
+    const canEditTrench = selectedTrenchControlId !== null && !selectedFossRowId && !selectedSieveRowId;
+
+    if (!canEditFoss && !canEditSieve && !canEditTrench) {
+      alert('Пожалуйста, выберите запись для редактирования.');
+      return;
+    }
+
+    if (canEditFoss) {
+      setMode('edit');
+      setOpenFossModal(true);
+      return;
+    }
+
+    if (canEditSieve) {
+      setMode('edit');
+      setOpenSieveModal(true);
+      return;
+    }
+
+    if (canEditTrench) {
+      setMode('edit');
+      setOpenTrenchModal(true);
+    }
   };
 
   useEffect(() => {
@@ -103,8 +147,6 @@ function Header({
       }
     }
   }, [selectedFarmId, trenches, selectedTrenchId]);
-
-  // удаление
 
   const handleDeleteClick = () => {
     const canDeleteFoss = selectedFossRowId !== null && selectedFossId !== null;
@@ -135,193 +177,194 @@ function Header({
     }
   };
 
-  // useEffect для удаления строки контроля
   useEffect(() => {
-  if (!confirmTrenchControlDelete || selectedTrenchControlId === null) return;
+    if (!confirmTrenchControlDelete || selectedTrenchControlId === null) return;
 
-  const deleteTrenchControl = async () => {
-    try {
-      const response = await fetch(`/api/v1/trench/trench_control/${selectedTrenchControlId}`, {
-        method: 'DELETE',
-      });
-      const data = await response.json();
+    const deleteTrenchControl = async () => {
+      try {
+        const response = await fetch(`/api/v1/trench/trench_control/${selectedTrenchControlId}`, {
+          method: 'DELETE',
+        });
+        const data = await response.json();
 
-      if (response.ok) {
-        alert('Запись успешно удалена');
-        setTrenchControlData(prev => prev.filter(item => item.id !== selectedTrenchControlId));
-        setSelectedTrenchControlId(null);
-      } else {
-        alert(`Ошибка удаления: ${data.error}`);
+        if (response.ok) {
+          alert('Запись успешно удалена');
+          setTrenchControlData(prev => prev.filter(item => item.id !== selectedTrenchControlId));
+          setSelectedTrenchControlId(null);
+        } else {
+          alert(`Ошибка удаления: ${data.error}`);
+        }
+      } catch (err) {
+        alert(`Ошибка сети: ${err}`);
+      } finally {
+        setConfirmTrenchControlDelete(false);
       }
-    } catch (err) {
-      alert(`Ошибка сети: ${err}`);
-    } finally {
-      setConfirmTrenchControlDelete(false); // сброс триггера
-    }
-  };
+    };
 
-  deleteTrenchControl();
-}, [confirmTrenchControlDelete]);
-
-// useEffect для удаления строки FOSS
+    deleteTrenchControl();
+  }, [confirmTrenchControlDelete]);
 
   useEffect(() => {
-  if (!confirmFossDelete || selectedFossId === null) return;
+    if (!confirmFossDelete || selectedFossId === null) return;
 
-  const deleteFoss = async () => {
-    try {
-      const response = await fetch(`/api/v1/trench/foss_data/${selectedFossId}`, {
-        method: 'DELETE',
-      });
-      const data = await response.json();
+    const deleteFoss = async () => {
+      try {
+        const response = await fetch(`/api/v1/trench/foss_data/${selectedFossId}`, {
+          method: 'DELETE',
+        });
+        const data = await response.json();
 
-      if (response.ok) {
-        alert('Запись успешно удалена');
-        setFossData(prev => prev.filter(item => item.id !== selectedFossId));
-        setSelectedFossId(null);
-      } else {
-        alert(`Ошибка удаления: ${data.error}`);
+        if (response.ok) {
+          alert('Запись успешно удалена');
+          setFossData(prev => prev.filter(item => item.id !== selectedFossId));
+          setSelectedFossId(null);
+        } else {
+          alert(`Ошибка удаления: ${data.error}`);
+        }
+      } catch (err) {
+        alert(`Ошибка сети: ${err}`);
+      } finally {
+        setConfirmFossDelete(false);
       }
-    } catch (err) {
-      alert(`Ошибка сети: ${err}`);
-    } finally {
-      setConfirmFossDelete(false); // сброс триггера
-    }
-  };
+    };
 
-  deleteFoss();
-}, [confirmFossDelete]);
-
-// useEffect для удаления строки Sieve
+    deleteFoss();
+  }, [confirmFossDelete]);
 
   useEffect(() => {
-  if (!confirmSieveDelete || selectedSieveId === null) return;
+    if (!confirmSieveDelete || selectedSieveId === null) return;
 
-  const deleteSieve = async () => {
-    try {
-      const response = await fetch(`/api/v1/trench/sieve/${selectedSieveId}`, {
-        method: 'DELETE',
-      });
-      const data = await response.json();
+    const deleteSieve = async () => {
+      try {
+        const response = await fetch(`/api/v1/trench/sieve/${selectedSieveId}`, {
+          method: 'DELETE',
+        });
+        const data = await response.json();
 
-      if (response.ok) {
-        alert('Запись успешно удалена');
-        setSieveData(prev => prev.filter(item => item.id !== selectedSieveId));
-        setSelectedSieveId(null);
-      } else {
-        alert(`Ошибка удаления: ${data.error}`);
+        if (response.ok) {
+          alert('Запись успешно удалена');
+          setSieveData(prev => prev.filter(item => item.id !== selectedSieveId));
+          setSelectedSieveId(null);
+        } else {
+          alert(`Ошибка удаления: ${data.error}`);
+        }
+      } catch (err) {
+        alert(`Ошибка сети: ${err}`);
+      } finally {
+        setConfirmSieveDelete(false);
       }
-    } catch (err) {
-      alert(`Ошибка сети: ${err}`);
-    } finally {
-      setConfirmSieveDelete(false); // сброс триггера
-    }
-  };
+    };
 
-  deleteSieve();
-}, [confirmSieveDelete]);
+    deleteSieve();
+  }, [confirmSieveDelete]);
 
+  const initialData = trenchControlData.find(item => item.id === selectedTrenchControlId);
 
   return (
     <header className={styles.header}>
-      <select
-        className={styles.select}
-        value={selectedSeason}
-        onChange={(e) => onSeasonChange(Number(e.target.value))}
-      >
+      <select className={styles.select} value={selectedSeason} onChange={(e) => onSeasonChange(Number(e.target.value))}>
         {seasonOptions.map((year) => (
-          <option key={year} value={year}>
-            {year}
-          </option>
+          <option key={year} value={year}>{year}</option>
         ))}
       </select>
 
-      <select
-        className={styles.select}
-        value={selectedFarmId ?? ''}
-        onChange={(e) => {
-          const val = e.target.value;
-          onFarmChange(val === '' ? null : Number(val));
-        }}
-      >
+      <select className={styles.select} value={selectedFarmId ?? ''} onChange={(e) => {
+        const val = e.target.value;
+        onFarmChange(val === '' ? null : Number(val));
+      }}>
         {selectedFarmId === null && (
-        <option value="" disabled>
-          Добавьте хозяйство
-        </option>
-         )}
-
+          <option value="" disabled>Добавьте хозяйство</option>
+        )}
         {farms.map((f) => (
-          <option key={f.id} value={f.id}>
-            {f.name}
-          </option>
+          <option key={f.id} value={f.id}>{f.name}</option>
         ))}
       </select>
 
-      <select
-        className={styles.select}
-        value={selectedTrenchId ?? ''}
-        onChange={(e) => {
-          const val = e.target.value;
-          onTrenchChange(val === '' ? null : Number(val));
-        }}
-      >
+      <select className={styles.select} value={selectedTrenchId ?? ''} onChange={(e) => {
+        const val = e.target.value;
+        onTrenchChange(val === '' ? null : Number(val));
+      }}>
         {selectedTrenchId === null && (
-        <option value="" disabled>
-          Добавьте траншею
-        </option>
+          <option value="" disabled>Добавьте траншею</option>
         )}
         {filteredTrenches.map((t) => (
-          <option key={t.id} value={t.id}>
-            {t.name}
-          </option>
+          <option key={t.id} value={t.id}>{t.name}</option>
         ))}
       </select>
 
-        <button className={styles.addButton} onClick={handleAddClick}>
-          Добавить
-        </button>
-
-        <button className={styles.editButton}>
-          Редактировать
-        </button>
-
-        <button className={styles.deleteButton} onClick={handleDeleteClick}>
-          Удалить
-        </button>
+      <button className={styles.addButton} onClick={handleAddClick}>Добавить</button>
+      <button className={styles.editButton} onClick={handleEditClick} disabled={!canEdit}>Редактировать</button>
+      <button className={styles.deleteButton} onClick={handleDeleteClick} disabled={!canDelete}>Удалить</button>
 
       {showBackButton && onBackClick && (
-        <button onClick={onBackClick} className={styles.backButton}>
-          Назад
-        </button>
+        <button onClick={onBackClick} className={styles.backButton}>Назад</button>
       )}
-      <TrenchControlModal 
+
+      <TrenchControlModal
         open={openTrenchModal}
         onClose={() => setOpenTrenchModal(false)}
         selectedSeason={selectedSeason}
         selectedTrenchId={selectedTrenchId}
         onAddTrenchControl={onAddTrenchControl}
-         />
+        selectedTrenchControlId={selectedTrenchControlId}
+        onUpdateTrenchControl={onUpdateTrenchControl}
+        mode={mode}
+        initialData={initialData}
+      />
 
-        <FossModal
-          open={openFossModal}
-          onClose={() => setOpenFossModal(false)}
-          selectedTrenchControlId={selectedFossRowId as number}
-          onAddFossData={(newItem) => {
-            onAddFossData(newItem);
-            setOpenFossModal(false);
-          }}
-        />
+      <FossModal
+        open={openFossModal}
+        onClose={() => setOpenFossModal(false)}
+        selectedTrenchControlId={selectedFossRowId as number}
+        onAddFossData={(newItem) => {
+          onAddFossData(newItem);
+          setOpenFossModal(false);
+        }}
+        mode={mode}
+        existingFossData={
+          selectedFossRowId
+            ? fossData.find((f) => f.id === selectedFossId) || null
+            : null
+        }
+        onUpdateFossData={(updatedItem) => {
+          setFossData(prev =>
+            prev.map(item => item.id === updatedItem.id ? updatedItem : item)
+          );
+          setOpenFossModal(false);
+        }}
+      />
 
-        <SieveModal
-          open={openSieveModal}
-          onClose={() => setOpenSieveModal(false)}
-          selectedTrenchControlId={selectedSieveRowId as number}
-          onAddSieveData={(newItem) => {
-            onAddSieveData(newItem);
-            setOpenSieveModal(false);
-          }}
-        />
+            <SieveModal
+        open={openSieveModal}
+        onClose={() => setOpenSieveModal(false)}
+        selectedTrenchControlId={selectedSieveRowId as number}
+        onAddSieveData={(newItem) => {
+          onAddSieveData(newItem);
+          setOpenSieveModal(false);
+        }}
+        mode={mode}
+        existingSieveData={
+          selectedSieveRowId
+            ? sieveData.find((f) => f.id === selectedSieveId) || null
+            : null
+        }
+        onUpdateSieveData={(updatedItem) => {
+          setSieveData(prev =>
+            prev.map(item => item.id === updatedItem.id ? updatedItem : item)
+          );
+          setOpenSieveModal(false);
+        }}
+      />
 
+      {/* <SieveModal
+        open={openSieveModal}
+        onClose={() => setOpenSieveModal(false)}
+        selectedTrenchControlId={selectedSieveRowId as number}
+        onAddSieveData={(newItem) => {
+          onAddSieveData(newItem);
+          setOpenSieveModal(false);
+        }}
+      /> */}
     </header>
   );
 }

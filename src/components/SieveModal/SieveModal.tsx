@@ -8,16 +8,20 @@ import {
   TextField,
   Box,
 } from '@mui/material';
+import type { Sieve } from '../../types/form';
 
 interface SieveModalProps {
   open: boolean;
   onClose: () => void;
   selectedTrenchControlId: number | null;
-  onAddSieveData: (newItem: any) => void;
+  onAddSieveData: (newItem: Sieve) => void;
+  mode: 'create' | 'edit';
+  existingSieveData?: Sieve | null;
+  onUpdateSieveData?: (updatedItem: Sieve) => void;
 }
 
-function getLocalDateTime() {
-  const now = new Date();
+function getLocalDateTime(date?: Date) {
+  const now = date ? new Date(date) : new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
@@ -31,6 +35,9 @@ const SieveModal: React.FC<SieveModalProps> = ({
   onClose,
   selectedTrenchControlId,
   onAddSieveData,
+  mode,
+  existingSieveData = null,
+  onUpdateSieveData,
 }) => {
   const [formData, setFormData] = useState({
     date_time: getLocalDateTime(),
@@ -42,22 +49,29 @@ const SieveModal: React.FC<SieveModalProps> = ({
 
   useEffect(() => {
     if (open) {
-      setFormData({
-        date_time: getLocalDateTime(),
-        high: '',
-        middle: '',
-        low: '',
-        pallet: '',
-      });
+      if (mode === 'edit' && existingSieveData) {
+        setFormData({
+          date_time: getLocalDateTime(new Date(existingSieveData.date_time)),
+          high: existingSieveData.high?.toString() ?? '',
+          middle: existingSieveData.middle?.toString() ?? '',
+          low: existingSieveData.low?.toString() ?? '',
+          pallet: existingSieveData.pallet?.toString() ?? '',
+        });
+      } else {
+        setFormData({
+          date_time: getLocalDateTime(),
+          high: '',
+          middle: '',
+          low: '',
+          pallet: '',
+        });
+      }
     }
-  }, [open]);
+  }, [open, mode, existingSieveData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async () => {
@@ -76,23 +90,37 @@ const SieveModal: React.FC<SieveModalProps> = ({
     };
 
     try {
-      const response = await fetch('/api/v1/trench/sieve/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        alert('Sieve-запись успешно добавлена');
-        onAddSieveData({
-          id: data.id,
-          ...payload,
-          date_time: new Date(payload.date_time),
+      let response, data;
+      if (mode === 'create') {
+        response = await fetch('/api/v1/trench/sieve/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
         });
-        onClose();
-      } else {
-        alert(`Ошибка: ${data.error}`);
+        data = await response.json();
+
+        if (response.ok) {
+          alert('Sieve-запись успешно добавлена');
+          onAddSieveData({ id: data.id, ...payload, date_time: new Date(payload.date_time) });
+          onClose();
+        } else {
+          alert(`Ошибка: ${data.error}`);
+        }
+      } else if (mode === 'edit' && existingSieveData) {
+        response = await fetch(`/api/v1/trench/sieve/${existingSieveData.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        data = await response.json();
+
+        if (response.ok) {
+          alert('Sieve-запись успешно обновлена');
+          onUpdateSieveData?.({ id: existingSieveData.id, ...payload, date_time: new Date(payload.date_time) });
+          onClose();
+        } else {
+          alert(`Ошибка обновления: ${data.error}`);
+        }
       }
     } catch (error) {
       alert(`Ошибка отправки: ${error}`);
@@ -101,7 +129,7 @@ const SieveModal: React.FC<SieveModalProps> = ({
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle>Добавить Sieve-запись</DialogTitle>
+      <DialogTitle>{mode === 'edit' ? 'Редактировать Sieve-запись' : 'Добавить Sieve-запись'}</DialogTitle>
       <DialogContent>
         <Box
           sx={{
