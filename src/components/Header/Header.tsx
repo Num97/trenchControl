@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import TrenchControlModal from '../TrenchControlModal/TrenchControlModal';
 import FossModal from '../FossModal/FossModal';
 import SieveModal from '../SieveModal/SieveModal';
+import FarmSettingsModal from '../FarmSettingsModal/FarmSettingsModal';
 
 interface HeaderProps {
   farms: Farms[];
@@ -35,6 +36,11 @@ interface HeaderProps {
   trenchControlData: TrenchControl[];
   fossData: FossData[],
   sieveData: Sieve[],
+  setShowFarmSettings: React.Dispatch<React.SetStateAction<boolean>>;
+  showFarmSettings: boolean;
+  setFarms: React.Dispatch<React.SetStateAction<Farms[]>>;
+  selectedCardFarmId: number | null;
+  setSelectedCardFarmId: React.Dispatch<React.SetStateAction<number | null>>;
 }
 
 function Header({
@@ -66,6 +72,11 @@ function Header({
   trenchControlData,
   fossData,
   sieveData,
+  setShowFarmSettings,
+  showFarmSettings,
+  setFarms,
+  selectedCardFarmId,
+  setSelectedCardFarmId,
 }: HeaderProps) {
   const currentYear = new Date().getFullYear();
   const seasonOptions = Array.from({ length: 4 }, (_, i) => currentYear - i);
@@ -75,20 +86,31 @@ function Header({
   const [openTrenchModal, setOpenTrenchModal] = useState(false);
   const [openFossModal, setOpenFossModal] = useState(false);
   const [openSieveModal, setOpenSieveModal] = useState(false);
+  const [openFarmModal, setOpenFarmModal] = useState(false);
   const [mode, setMode] = useState<'create' | 'edit'>('create');
 
   const [confirmTrenchControlDelete, setConfirmTrenchControlDelete] = useState(false);
   const [confirmFossDelete, setConfirmFossDelete] = useState(false);
   const [confirmSieveDelete, setConfirmSieveDelete] = useState(false);
+  const [confirmFarmDelete, setConfirmFarmDelete] = useState(false);
 
   const canEdit =
-  (selectedFossRowId !== null && selectedFossId !== null) ||
-  (selectedSieveRowId !== null && selectedSieveId !== null) ||
-  (selectedTrenchControlId !== null && !selectedFossRowId && !selectedSieveRowId);
+    (selectedFossRowId !== null && selectedFossId !== null && !showFarmSettings) ||
+    (selectedSieveRowId !== null && selectedSieveId !== null && !showFarmSettings) ||
+    (selectedTrenchControlId !== null && !selectedFossRowId && !selectedSieveRowId && !showFarmSettings) ||
+    (showFarmSettings && selectedCardFarmId);
 
   const canDelete = canEdit;
 
+  const handleShowFarmSettings = () => {
+    setShowFarmSettings((prev) => !prev);
+  };
+
   const handleAddClick = () => {
+    if (showFarmSettings) {
+      setOpenFarmModal(true);
+      return;
+    }
     if (selectedFossRowId) {
       setMode('create');
       setOpenFossModal(true);
@@ -106,6 +128,13 @@ function Header({
     setMode('create');
     setOpenTrenchModal(true);
   };
+
+    const handleFarmAddSuccess = (id: number, name: string) => {
+    alert(`Хозяйство добавлено: ${name}`);
+    setFarms(prev => [...prev, { id, name }]);
+    setOpenFarmModal(false);
+  };
+
 
   const handleEditClick = () => {
     const canEditFoss = selectedFossRowId !== null && selectedFossId !== null;
@@ -149,17 +178,22 @@ function Header({
   }, [selectedFarmId, trenches, selectedTrenchId]);
 
   const handleDeleteClick = () => {
-    const canDeleteFoss = selectedFossRowId !== null && selectedFossId !== null;
-    const canDeleteSieve = selectedSieveRowId !== null && selectedSieveId !== null;
-    const canDeleteTrench = selectedTrenchControlId !== null && !selectedFossRowId && !selectedSieveRowId;
+    const canDeleteFoss = selectedFossRowId !== null && selectedFossId !== null && !showFarmSettings;
+    const canDeleteSieve = selectedSieveRowId !== null && selectedSieveId !== null && !showFarmSettings;
+    const canDeleteFarm = showFarmSettings && selectedCardFarmId;
+    const canDeleteTrench = selectedTrenchControlId !== null && !selectedFossRowId && !selectedSieveRowId && !showFarmSettings;
 
-    if (!canDeleteFoss && !canDeleteSieve && !canDeleteTrench) {
+    if (!canDeleteFoss && !canDeleteSieve && !canDeleteTrench && !canDeleteFarm) {
       alert('Пожалуйста, выберите запись для удаления.');
       return;
     }
 
     const confirmed = window.confirm('Вы уверены, что хотите удалить эту запись и все связанные с ней данные?');
     if (!confirmed) return;
+
+    if (canDeleteFarm) {
+        setConfirmFarmDelete(true);
+    }
 
     if (canDeleteFoss) {
       setConfirmFossDelete(true);
@@ -258,6 +292,33 @@ function Header({
     deleteSieve();
   }, [confirmSieveDelete]);
 
+  useEffect(() => {
+    if (!confirmFarmDelete || selectedCardFarmId === null) return;
+
+    const deleteFarm = async () => {
+      try {
+        const response = await fetch(`/api/v1/trench/farms/${selectedCardFarmId}`, {
+          method: 'DELETE',
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+          alert('Хозяйство успешно удалено');
+          setFarms(prev => prev.filter(item => item.id !== selectedCardFarmId));
+          setSelectedCardFarmId(null);
+        } else {
+          alert(`Ошибка удаления: ${data.error}`);
+        }
+      } catch (err) {
+        alert(`Ошибка сети: ${err}`);
+      } finally {
+        setConfirmFarmDelete(false);
+      }
+    };
+
+    deleteFarm();
+  }, [confirmFarmDelete]);
+
   const initialData = trenchControlData.find(item => item.id === selectedTrenchControlId);
 
   return (
@@ -292,13 +353,20 @@ function Header({
         ))}
       </select>
 
-      <button className={styles.addButton} onClick={handleAddClick}>Добавить</button>
+      <button className={styles.addButton} onClick={handleAddClick}>{showFarmSettings ? 'Добавить хозяйство' : 'Добавить'}</button>
       <button className={styles.editButton} onClick={handleEditClick} disabled={!canEdit}>Редактировать</button>
       <button className={styles.deleteButton} onClick={handleDeleteClick} disabled={!canDelete}>Удалить</button>
 
       {showBackButton && onBackClick && (
         <button onClick={onBackClick} className={styles.backButton}>Назад</button>
       )}
+
+      <img
+        src="/static/trench/img/wrench.svg"
+        alt="Settings"
+        className={styles.icon}
+        onClick={handleShowFarmSettings}
+      />
 
       <TrenchControlModal
         open={openTrenchModal}
@@ -334,7 +402,7 @@ function Header({
         }}
       />
 
-            <SieveModal
+      <SieveModal
         open={openSieveModal}
         onClose={() => setOpenSieveModal(false)}
         selectedTrenchControlId={selectedSieveRowId as number}
@@ -356,15 +424,11 @@ function Header({
         }}
       />
 
-      {/* <SieveModal
-        open={openSieveModal}
-        onClose={() => setOpenSieveModal(false)}
-        selectedTrenchControlId={selectedSieveRowId as number}
-        onAddSieveData={(newItem) => {
-          onAddSieveData(newItem);
-          setOpenSieveModal(false);
-        }}
-      /> */}
+      <FarmSettingsModal
+        open={openFarmModal}
+        onClose={() => setOpenFarmModal(false)}
+        onSuccess={handleFarmAddSuccess}
+      />
     </header>
   );
 }

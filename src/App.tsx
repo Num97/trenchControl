@@ -5,6 +5,7 @@ import Header from './components/Header/Header';
 import TrenchControlView from './components/TrenchControlView/TrenchControlView';
 import FossDataDetails from './components/FossDataDetails/FossDataDetails';
 import SieveDataDetails from './components/SieveDataDetails/SieveDataDetails';
+import FarmsSettings from './components/FarmSettings/FarmSettings';
 
 function App() {
   const [farms, setFarms] = useState<Farms[]>([]);
@@ -23,6 +24,9 @@ function App() {
   const [selectedTrenchControlId, setSelectedTrenchControlId] = useState<number | null>(null);
   const [selectedFossId, setSelectedFossId] = useState<number | null>(null);
   const [selectedSieveId, setSelectedSieveId] = useState<number | null>(null);
+
+  const [showFarmSettings, setShowFarmSettings] = useState<boolean>(false);
+  const [selectedCardFarmId, setSelectedCardFarmId] = useState<number | null>(null);
 
   const handleAddTrenchControl = (newItem: TrenchControl) => {
     setTrenchControl(prev => {
@@ -73,6 +77,7 @@ function App() {
     setSelectedSieveRowId(null);
     setSelectedFossId(null);
     setSelectedSieveId(null);
+    setShowFarmSettings(false);
   };
 
   useEffect(() => {
@@ -132,7 +137,7 @@ function App() {
         onFarmChange={setSelectedFarmId}
         onTrenchChange={setSelectedTrenchId}
         onSeasonChange={setSelectedSeason}
-        showBackButton={!!selectedFossRowId || !!selectedSieveRowId}
+        showBackButton={!!selectedFossRowId || !!selectedSieveRowId || !!showFarmSettings}
         onBackClick={handleBack}
         selectedFossRowId={selectedFossRowId}
         selectedSieveRowId={selectedSieveRowId}
@@ -152,9 +157,21 @@ function App() {
         trenchControlData={trenchControl}
         fossData={foss}
         sieveData={sieve}
+        setShowFarmSettings={setShowFarmSettings}
+        showFarmSettings = {showFarmSettings}
+        setFarms={setFarms}
+        selectedCardFarmId={selectedCardFarmId}
+        setSelectedCardFarmId={setSelectedCardFarmId}
       />
 
-        {selectedSieveRowId ? (
+        {showFarmSettings ? (
+            <FarmsSettings
+              farms={farms}
+              trenches = {trenches}
+              selectedCardFarmId={selectedCardFarmId}
+              setSelectedCardFarmId={setSelectedCardFarmId}
+              />
+        ) : selectedSieveRowId ? (
           <div>
             <SieveDataDetails 
               data={sieve.filter(s => s.trench_control_id === selectedSieveRowId)} 
