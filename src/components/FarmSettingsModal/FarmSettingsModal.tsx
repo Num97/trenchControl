@@ -38,7 +38,11 @@ const FarmSettingsModal: React.FC<FarmSettingsModalProps> = ({ open, onClose, on
         setName('');
         onClose();
       } else {
-        alert(`Ошибка: ${data.error}`);
+        if (data.error && typeof data.error === 'string' && data.error.includes('trenches_farm_uniq')) {
+          alert('Такое хозяйство уже существует');
+        } else {
+          alert(`Ошибка: ${data.error}`);
+        }
       }
     } catch (error) {
       alert(`Ошибка сети: ${error}`);

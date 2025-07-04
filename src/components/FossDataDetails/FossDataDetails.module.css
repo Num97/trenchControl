@@ -36,3 +36,37 @@ thead {
   background-color: #fff2c6;
   cursor: pointer;
 }
+
+.averageRow {
+  font-weight: 700;
+}
+
+.headerBlock {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border-left: 4px solid #1976d2;
+  border-radius: 4px;
+}
+
+.headerBlock h4 {
+  margin: 0 0 0.5rem 0;
+  color: #1976d2;
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: 1rem;
+}
+
+.relatedInfo {
+  background-color: #eef6ff;
+  border-left: 4px solid #1976d2;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  width: 100%;
+  text-align: center;
+}

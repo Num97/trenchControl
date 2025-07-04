@@ -24,3 +24,9 @@
 .tableBlock:hover {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
+
+.empty {
+  font-style: italic;
+  color: #666;
+  padding: 1rem;
+}

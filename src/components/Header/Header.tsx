@@ -6,6 +6,7 @@ import TrenchControlModal from '../TrenchControlModal/TrenchControlModal';
 import FossModal from '../FossModal/FossModal';
 import SieveModal from '../SieveModal/SieveModal';
 import FarmSettingsModal from '../FarmSettingsModal/FarmSettingsModal';
+import FarmCardEditorModal from '../FarmCardEditorModal/FarmCardEditorModal';
 
 interface HeaderProps {
   farms: Farms[];
@@ -41,6 +42,10 @@ interface HeaderProps {
   setFarms: React.Dispatch<React.SetStateAction<Farms[]>>;
   selectedCardFarmId: number | null;
   setSelectedCardFarmId: React.Dispatch<React.SetStateAction<number | null>>;
+  onUpdateFarm: (updatedFarm: Farms) => void;
+  onAddTrench: (newTrench: Trenches) => void;
+  onUpdateTrench: (updatedTrench: Trenches) => void;
+  onDeleteTrench: (id: number) => void;
 }
 
 function Header({
@@ -77,6 +82,10 @@ function Header({
   setFarms,
   selectedCardFarmId,
   setSelectedCardFarmId,
+  onUpdateFarm,
+  onAddTrench,
+  onUpdateTrench,
+  onDeleteTrench,
 }: HeaderProps) {
   const currentYear = new Date().getFullYear();
   const seasonOptions = Array.from({ length: 4 }, (_, i) => currentYear - i);
@@ -87,6 +96,7 @@ function Header({
   const [openFossModal, setOpenFossModal] = useState(false);
   const [openSieveModal, setOpenSieveModal] = useState(false);
   const [openFarmModal, setOpenFarmModal] = useState(false);
+  const [openFarmCardEditorModal, setOpenFarmCardEditorModal] = useState(false);
   const [mode, setMode] = useState<'create' | 'edit'>('create');
 
   const [confirmTrenchControlDelete, setConfirmTrenchControlDelete] = useState(false);
@@ -137,11 +147,12 @@ function Header({
 
 
   const handleEditClick = () => {
-    const canEditFoss = selectedFossRowId !== null && selectedFossId !== null;
-    const canEditSieve = selectedSieveRowId !== null && selectedSieveId !== null;
-    const canEditTrench = selectedTrenchControlId !== null && !selectedFossRowId && !selectedSieveRowId;
+    const canEditFoss = selectedFossRowId !== null && selectedFossId !== null  && !showFarmSettings;
+    const canEditSieve = selectedSieveRowId !== null && selectedSieveId !== null  && !showFarmSettings;
+    const canEditTrench = selectedTrenchControlId !== null && !selectedFossRowId && !selectedSieveRowId  && !showFarmSettings;
+    const canEditFarm = showFarmSettings && selectedCardFarmId;
 
-    if (!canEditFoss && !canEditSieve && !canEditTrench) {
+    if (!canEditFoss && !canEditSieve && !canEditTrench && !canEditFarm) {
       alert('Пожалуйста, выберите запись для редактирования.');
       return;
     }
@@ -161,6 +172,10 @@ function Header({
     if (canEditTrench) {
       setMode('edit');
       setOpenTrenchModal(true);
+    }
+
+    if (canEditFarm) {
+      setOpenFarmCardEditorModal(true);
     }
   };
 
@@ -323,15 +338,26 @@ function Header({
 
   return (
     <header className={styles.header}>
-      <select className={styles.select} value={selectedSeason} onChange={(e) => onSeasonChange(Number(e.target.value))}>
+      <select
+        className={styles.select}
+        value={selectedSeason}
+        onChange={(e) => {
+          const newSeason = Number(e.target.value);
+          onSeasonChange(newSeason);
+          if (onBackClick) onBackClick(); // вызываем "назад"
+        }}
+      >
         {seasonOptions.map((year) => (
-          <option key={year} value={year}>{year}</option>
+          <option key={year} value={year}>
+            {year}
+          </option>
         ))}
       </select>
 
       <select className={styles.select} value={selectedFarmId ?? ''} onChange={(e) => {
         const val = e.target.value;
         onFarmChange(val === '' ? null : Number(val));
+         if (onBackClick) onBackClick();
       }}>
         {selectedFarmId === null && (
           <option value="" disabled>Добавьте хозяйство</option>
@@ -341,17 +367,25 @@ function Header({
         ))}
       </select>
 
-      <select className={styles.select} value={selectedTrenchId ?? ''} onChange={(e) => {
-        const val = e.target.value;
-        onTrenchChange(val === '' ? null : Number(val));
-      }}>
+      <select
+        className={styles.select}
+        value={selectedTrenchId ?? ''}
+        onChange={(e) => {
+          const val = e.target.value;
+          onTrenchChange(val === '' ? null : Number(val));
+          if (onBackClick) onBackClick(); 
+        }}
+      >
         {selectedTrenchId === null && (
           <option value="" disabled>Добавьте траншею</option>
         )}
         {filteredTrenches.map((t) => (
-          <option key={t.id} value={t.id}>{t.name}</option>
+          <option key={t.id} value={t.id}>
+            {t.name}
+          </option>
         ))}
       </select>
+
 
       <button className={styles.addButton} onClick={handleAddClick}>{showFarmSettings ? 'Добавить хозяйство' : 'Добавить'}</button>
       <button className={styles.editButton} onClick={handleEditClick} disabled={!canEdit}>Редактировать</button>
@@ -428,6 +462,18 @@ function Header({
         open={openFarmModal}
         onClose={() => setOpenFarmModal(false)}
         onSuccess={handleFarmAddSuccess}
+      />
+
+      <FarmCardEditorModal
+        open={openFarmCardEditorModal}
+        onClose={() => setOpenFarmCardEditorModal(false)}
+        selectedFarmId={selectedCardFarmId}
+        farms={farms}
+        trenches={trenches}
+        onUpdateFarm = {onUpdateFarm}
+        onAddTrench = {onAddTrench}
+        onUpdateTrench = {onUpdateTrench}
+        onDeleteTrench = {onDeleteTrench}
       />
     </header>
   );

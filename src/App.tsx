@@ -28,6 +28,26 @@ function App() {
   const [showFarmSettings, setShowFarmSettings] = useState<boolean>(false);
   const [selectedCardFarmId, setSelectedCardFarmId] = useState<number | null>(null);
 
+  // колбэки для карточек хозяйств
+
+  const handleUpdateFarm = (updatedFarm: Farms) => {
+    setFarms(prev => prev.map(f => f.id === updatedFarm.id ? updatedFarm : f));
+  };
+
+  const handleAddTrench = (newTrench: Trenches) => {
+    setTrenches(prev => [...prev, newTrench]);
+  };
+
+  const handleUpdateTrench = (updatedTrench: Trenches) => {
+    setTrenches(prev => prev.map(t => t.id === updatedTrench.id ? updatedTrench : t));
+  };
+
+  const handleDeleteTrench = (id: number) => {
+    setTrenches(prev => prev.filter(t => t.id !== id));
+  };
+
+  // конец колбэков карточек хозяйств
+
   const handleAddTrenchControl = (newItem: TrenchControl) => {
     setTrenchControl(prev => {
       const updated = [...prev, newItem];
@@ -162,6 +182,10 @@ function App() {
         setFarms={setFarms}
         selectedCardFarmId={selectedCardFarmId}
         setSelectedCardFarmId={setSelectedCardFarmId}
+        onUpdateFarm = {handleUpdateFarm}
+        onAddTrench = {handleAddTrench}
+        onUpdateTrench = {handleUpdateTrench}
+        onDeleteTrench = {handleDeleteTrench}
       />
 
         {showFarmSettings ? (
@@ -177,6 +201,8 @@ function App() {
               data={sieve.filter(s => s.trench_control_id === selectedSieveRowId)} 
               selectedSieveId={selectedSieveId}
               setSelectedSieveId={setSelectedSieveId}
+              trenchControlData={filteredTrenchData}
+              selectedSieveRowId={selectedSieveRowId}
             />
           </div>
         ) : selectedFossRowId ? (
@@ -185,6 +211,8 @@ function App() {
                 data={foss.filter(f => f.trench_control_id === selectedFossRowId)}
                 selectedFossId={selectedFossId}
                 setSelectedFossId={setSelectedFossId}
+                trenchControlData={filteredTrenchData}
+                selectedFossRowId={selectedFossRowId}
             />
           </div>
         ) : (

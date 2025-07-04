@@ -24,6 +24,10 @@ const TrenchControlView: React.FC<Props> = ({
   selectedTrenchControlId,
   setSelectedTrenchControlId,
 }) => {
+  if (data.length === 0) {
+    return <div className={styles.empty}>Данные заготовки траншеи еще не занесены</div>;
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.tableWrapper}>
