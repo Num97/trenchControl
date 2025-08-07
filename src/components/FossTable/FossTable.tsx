@@ -33,7 +33,7 @@ const FossTable: React.FC<Props> = ({ data, foss, onRowClick}) => {
           <th>КДК</th>
           <th>НДК</th>
           <th>Зола</th>
-          <th>Сырой жир</th>
+          <th>Жир</th>
         </tr>
       </thead>
       <tbody>

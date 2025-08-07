@@ -21,9 +21,8 @@ export interface Sieve {
 
 export interface TrenchControl {
     id: number;
-    trench_id: number;
+    harvest_id: number | null;
     date: Date | null;
-    season: number;
     crop: string | null;
     weather: string | null;
     temp_trench: number | null;
@@ -45,4 +44,23 @@ export interface FossData {
     ndf: number | null;
     ash: number | null;
     raw_fat: number | null;
+}
+
+export interface Harvest {
+    id: number;
+    season: number;
+    harvesting: number;
+    trench_id: number | null;
+}
+
+export interface LabData {
+  id?: number;
+  harvest_id?: number;
+  dry_matter: string;
+  protein: string;
+  starch: string;
+  raw_fat: string;
+  adf: string;
+  ndf: string;
+  ash: string;
 }

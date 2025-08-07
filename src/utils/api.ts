@@ -1,6 +1,6 @@
-import type { Farms, Trenches, Sieve, TrenchControl, FossData } from '../types/form'
+import type { Farms, Trenches, Sieve, TrenchControl, FossData, Harvest } from '../types/form'
 
-const API_BASE_URL = 'api/v1/trench';
+const API_BASE_URL = '/api/v1/trench';
 
 export async function getFarms(): Promise<Farms[]> {
     const url = `${API_BASE_URL}/farms`;
@@ -50,8 +50,29 @@ export async function getSieve(): Promise<Sieve[]> {
     }
 }
 
-export async function getTrenchControl(season: number = new Date().getFullYear()): Promise<TrenchControl[]> {
-    const url = `${API_BASE_URL}/trench_control?season=${season}`;
+export async function getHarvest(season: number = new Date().getFullYear()): Promise<Harvest[]> {
+    const url = `${API_BASE_URL}/harvest?season=${season}`;
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Ошибка запроса: ${response.status}`)
+        }
+
+        const rawData = await response.json();
+
+        const data: Harvest[] = rawData.map((item: any) => ({
+        ...item,
+        }));
+        return data;
+    } catch (error) {
+        console.error('Ошибка при получении данных:', error);
+        throw error;
+    }
+}
+
+
+export async function getTrenchControl(): Promise<TrenchControl[]> {
+    const url = `${API_BASE_URL}/trench_control`;
     try {
         const response = await fetch(url);
         if (!response.ok) {
@@ -91,4 +112,15 @@ export async function getFossData(): Promise<FossData[]> {
         console.error('Ошибка при получении данных:', error);
         throw error;
     }
+}
+
+export async function deleteHarvestById(harvestId: number): Promise<void> {
+  const response = await fetch(`/api/v1/trench/harvest/${harvestId}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(data.error || 'Ошибка удаления укоса');
+  }
 }

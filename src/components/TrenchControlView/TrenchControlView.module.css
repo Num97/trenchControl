@@ -30,3 +30,44 @@
   color: #666;
   padding: 1rem;
 }
+
+.harvestTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+
+.toggleButton {
+  margin-left: 8px;
+  background-color: #dfffe0;
+  border: 1px solid #2ecc71;
+  color: #2ecc71;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.toggleClose {
+  background-color: #dfffe0;
+  border-color: #2ecc71;
+  color: #2ecc71;
+}
+
+.toggleClose:hover {
+  background-color: #b6f4bb;
+}
+
+/* Состояние: закрыто (красная) */
+.toggleOpen {
+  background-color: #ffe0e0;
+  border-color: #e74c3c;
+  color: #e74c3c;
+}
+
+.toggleOpen:hover {
+  background-color: #f4bbbb;
+}

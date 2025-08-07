@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { getFarms, getTrenches, getTrenchControl, getFossData, getSieve } from './utils/api';
-import type { Farms, Trenches, TrenchControl, FossData, Sieve } from './types/form';
+import { getFarms, getTrenches, getTrenchControl, getFossData, getSieve, getHarvest} from './utils/api';
+import type { Farms, Trenches, TrenchControl, FossData, Sieve, Harvest } from './types/form';
 import Header from './components/Header/Header';
 import TrenchControlView from './components/TrenchControlView/TrenchControlView';
 import FossDataDetails from './components/FossDataDetails/FossDataDetails';
@@ -10,6 +10,7 @@ import FarmsSettings from './components/FarmSettings/FarmSettings';
 function App() {
   const [farms, setFarms] = useState<Farms[]>([]);
   const [trenches, setTrenches] = useState<Trenches[]>([]);
+  const [harvest, setHarvest] = useState<Harvest[]>([])
   const [trenchControl, setTrenchControl] = useState<TrenchControl[]>([]);
   const [foss, setFossData] = useState<FossData[]>([]);
   const [sieve, setSieveData] = useState<Sieve[]>([]);
@@ -47,6 +48,22 @@ function App() {
   };
 
   // конец колбэков карточек хозяйств
+
+  // начало колбэков хозяйств
+  const handleAddHarvest = (newHarvest: Harvest) => {
+    setHarvest(prev => [...prev, newHarvest]);
+  };
+
+  const handleDeleteHarvest = (harvestId: number) => {
+    setHarvest((prev) => prev.filter((h) => h.id !== harvestId));
+  };
+
+  const handleUpdateHarvest = (updated: Harvest) => {
+    setHarvest((prev) =>
+      prev.map((h) => (h.id === updated.id ? updated : h))
+    );
+  };
+
 
   const handleAddTrenchControl = (newItem: TrenchControl) => {
     setTrenchControl(prev => {
@@ -97,6 +114,7 @@ function App() {
     setSelectedSieveRowId(null);
     setSelectedFossId(null);
     setSelectedSieveId(null);
+    // setSelectedTrenchControlId(null);
     setShowFarmSettings(false);
   };
 
@@ -104,7 +122,8 @@ function App() {
     const fetchData = async () => {
       const farmsData = await getFarms();
       const trenchesData = await getTrenches();
-      const trenchControlData = await getTrenchControl(selectedSeason);
+      const harvestData = await getHarvest(selectedSeason);
+      const trenchControlData = await getTrenchControl();
       const fossData = await getFossData();
       const sieveData = await getSieve();
 
@@ -113,6 +132,7 @@ function App() {
       setTrenchControl(trenchControlData);
       setFossData(fossData);
       setSieveData(sieveData);
+      setHarvest(harvestData);
 
       if (farmsData.length > 0) {
         const initialFarmId = farmsData[0].id;
@@ -127,24 +147,35 @@ function App() {
     fetchData();
   }, []);
 
-
-  useEffect(() => {
+useEffect(() => {
     const fetchData = async () => {
-      const data = await getTrenchControl(selectedSeason);
-      setTrenchControl(data);
+      const data = await getHarvest(selectedSeason);
+      setHarvest(data);
     };
     fetchData();
   }, [selectedSeason]);
 
-    const filteredTrenchData = trenchControl.filter((entry) => {
-    const trench = trenches.find((t) => t.id === entry.trench_id);
-    if (!trench) return false;
+  const filteredTrenchData = trenchControl.filter((entry) => {
+  const harvestEntry = harvest.find(h => h.id === entry.harvest_id);
+  if (!harvestEntry) return false;
 
-    const matchFarm = selectedFarmId ? trench.farm_id === selectedFarmId : true;
-    const matchTrench = selectedTrenchId ? entry.trench_id === selectedTrenchId : true;
+  const trench = trenches.find(t => t.id === harvestEntry.trench_id);
+  if (!trench) return false;
 
-    return matchFarm && matchTrench;
-  });
+  const matchFarm = selectedFarmId ? trench.farm_id === selectedFarmId : true;
+  const matchTrench = selectedTrenchId ? trench.id === selectedTrenchId : true;
+  return matchFarm && matchTrench;
+});
+
+const filteredHarvests = selectedTrenchId
+  ? harvest.filter(h => h.trench_id === selectedTrenchId)
+  : [];
+
+
+const harvestOptions = filteredHarvests.map(h => ({
+  id: h.id,
+  harvesting: h.harvesting
+}));
 
   return (
     <div>
@@ -186,6 +217,11 @@ function App() {
         onAddTrench = {handleAddTrench}
         onUpdateTrench = {handleUpdateTrench}
         onDeleteTrench = {handleDeleteTrench}
+        harvestOptions={harvestOptions}
+        onAddHarvest={handleAddHarvest}
+        harvests={harvest}
+        onDeleteHarvest={handleDeleteHarvest}
+        onUpdateHarvest={handleUpdateHarvest}
       />
 
         {showFarmSettings ? (
@@ -224,6 +260,7 @@ function App() {
             onSieveRowClick={handleSieveRowClick}
             selectedTrenchControlId={selectedTrenchControlId}
             setSelectedTrenchControlId={setSelectedTrenchControlId}
+            harvestData={filteredHarvests}
           />
         )}
 

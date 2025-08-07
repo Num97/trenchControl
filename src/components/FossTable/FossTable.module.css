@@ -1,7 +1,8 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  /* font-size: 13px; */
+  font-size: clamp(12px, 0.85vw, 20px);
   background-color: white;
 }
 

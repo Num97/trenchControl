@@ -1,4 +1,4 @@
-import type { Farms, Trenches, TrenchControl, FossData, Sieve } from '../../types/form';
+import type { Farms, Trenches, TrenchControl, FossData, Sieve, Harvest } from '../../types/form';
 import styles from './Header.module.css';
 import { useEffect, useState } from 'react';
 
@@ -7,6 +7,7 @@ import FossModal from '../FossModal/FossModal';
 import SieveModal from '../SieveModal/SieveModal';
 import FarmSettingsModal from '../FarmSettingsModal/FarmSettingsModal';
 import FarmCardEditorModal from '../FarmCardEditorModal/FarmCardEditorModal';
+import HarvestModal from '../HarvestModal/HarvestModal';
 
 interface HeaderProps {
   farms: Farms[];
@@ -46,6 +47,11 @@ interface HeaderProps {
   onAddTrench: (newTrench: Trenches) => void;
   onUpdateTrench: (updatedTrench: Trenches) => void;
   onDeleteTrench: (id: number) => void;
+  harvestOptions: { id: number; harvesting: number }[];
+  onAddHarvest: (newHarvest: Harvest) => void;
+  harvests: Harvest[];
+  onDeleteHarvest: (id: number) => void;
+  onUpdateHarvest: (updatedHarvest: Harvest) => void;
 }
 
 function Header({
@@ -86,6 +92,12 @@ function Header({
   onAddTrench,
   onUpdateTrench,
   onDeleteTrench,
+  harvestOptions,
+  onAddHarvest,
+  harvests,
+  onDeleteHarvest,
+  onUpdateHarvest
+  
 }: HeaderProps) {
   const currentYear = new Date().getFullYear();
   const seasonOptions = Array.from({ length: 4 }, (_, i) => currentYear - i);
@@ -103,6 +115,8 @@ function Header({
   const [confirmFossDelete, setConfirmFossDelete] = useState(false);
   const [confirmSieveDelete, setConfirmSieveDelete] = useState(false);
   const [confirmFarmDelete, setConfirmFarmDelete] = useState(false);
+
+  const [isHarvestModalOpen, setIsHarvestModalOpen] = useState(false);
 
   const canEdit =
     (selectedFossRowId !== null && selectedFossId !== null && !showFarmSettings) ||
@@ -145,6 +159,14 @@ function Header({
     setOpenFarmModal(false);
   };
 
+  //укос
+  const handleScytheClick = () => {
+    if (selectedTrenchId !== null) {
+      setIsHarvestModalOpen(true);
+    } else {
+      console.warn('Сначала выберите траншею');
+    }
+  };
 
   const handleEditClick = () => {
     const canEditFoss = selectedFossRowId !== null && selectedFossId !== null  && !showFarmSettings;
@@ -344,7 +366,9 @@ function Header({
         onChange={(e) => {
           const newSeason = Number(e.target.value);
           onSeasonChange(newSeason);
-          if (onBackClick) onBackClick(); // вызываем "назад"
+          if (onBackClick) onBackClick();
+          onTrenchChange(null);
+          setSelectedTrenchControlId(null);
         }}
       >
         {seasonOptions.map((year) => (
@@ -358,6 +382,7 @@ function Header({
         const val = e.target.value;
         onFarmChange(val === '' ? null : Number(val));
          if (onBackClick) onBackClick();
+         setSelectedTrenchControlId(null);
       }}>
         {selectedFarmId === null && (
           <option value="" disabled>Добавьте хозяйство</option>
@@ -374,6 +399,7 @@ function Header({
           const val = e.target.value;
           onTrenchChange(val === '' ? null : Number(val));
           if (onBackClick) onBackClick(); 
+          setSelectedTrenchControlId(null);
         }}
       >
         {selectedTrenchId === null && (
@@ -395,12 +421,21 @@ function Header({
         <button onClick={onBackClick} className={styles.backButton}>Назад</button>
       )}
 
-      <img
-        src="/static/trench/img/wrench.svg"
-        alt="Settings"
-        className={styles.icon}
-        onClick={handleShowFarmSettings}
-      />
+      <div className={styles.iconBlock}>
+        <img
+          src="/static/img/trench/scythe.svg"
+          alt="Settings"
+          className={styles.icon}
+          onClick={handleScytheClick}
+        />
+
+        <img
+          src="/static/img/trench/wrench.svg"
+          alt="Settings"
+          className={styles.icon}
+          onClick={handleShowFarmSettings}
+        />
+      </div>
 
       <TrenchControlModal
         open={openTrenchModal}
@@ -412,6 +447,8 @@ function Header({
         onUpdateTrenchControl={onUpdateTrenchControl}
         mode={mode}
         initialData={initialData}
+        harvestOptions={harvestOptions}
+        onAddHarvest={onAddHarvest}
       />
 
       <FossModal
@@ -474,6 +511,16 @@ function Header({
         onAddTrench = {onAddTrench}
         onUpdateTrench = {onUpdateTrench}
         onDeleteTrench = {onDeleteTrench}
+      />
+
+      <HarvestModal
+        open={isHarvestModalOpen}
+        onClose={() => setIsHarvestModalOpen(false)}
+        trenchId={selectedTrenchId ?? 0}
+        harvests={harvests}
+        onAddHarvest={onAddHarvest}
+        onDeleteHarvest={onDeleteHarvest}
+        onUpdateHarvest={onUpdateHarvest}
       />
     </header>
   );
