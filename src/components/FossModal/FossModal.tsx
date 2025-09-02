@@ -49,6 +49,7 @@ const FossModal: React.FC<FossModalProps> = ({
     ndf: '',
     ash: '',
     field: '',
+    mw: '',
   });
 
   useEffect(() => {
@@ -64,6 +65,7 @@ const FossModal: React.FC<FossModalProps> = ({
           ndf: existingFossData.ndf?.toString() ?? '',
           ash: existingFossData.ash?.toString() ?? '',
           field: existingFossData.field ?? '',
+          mw: existingFossData.mw?.toString() ?? '',
         });
       } else {
         setFormData({
@@ -76,6 +78,7 @@ const FossModal: React.FC<FossModalProps> = ({
           ndf: '',
           ash: '',
           field: '',
+          mw: '',
         });
       }
     }
@@ -103,6 +106,7 @@ const FossModal: React.FC<FossModalProps> = ({
       ndf: formData.ndf ? parseFloat(formData.ndf) : null,
       ash: formData.ash ? parseFloat(formData.ash) : null,
       field: formData.field || null,
+      mw: formData.mw ? parseFloat(formData.mw) : null,
     };
 
     try {
@@ -167,6 +171,7 @@ const FossModal: React.FC<FossModalProps> = ({
             InputProps={{ readOnly: true }}
           />
           <TextField label="Сухое вещество (%)" name="dry_matter" type="number" value={formData.dry_matter} onChange={handleChange} fullWidth />
+          <TextField label="СВЧ" name="mw" type="number" value={formData.mw} onChange={handleChange} fullWidth />
           <TextField label="Белок (%)" name="protein" type="number" value={formData.protein} onChange={handleChange} fullWidth />
           <TextField label="Крахмал (%)" name="starch" type="number" value={formData.starch} onChange={handleChange} fullWidth />
           <TextField label="Сырой жир (%)" name="raw_fat" type="number" value={formData.raw_fat} onChange={handleChange} fullWidth />

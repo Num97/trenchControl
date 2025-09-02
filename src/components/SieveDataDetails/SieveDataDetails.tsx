@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Sieve, TrenchControl } from '../../types/form';
+import type { Sieve, TrenchControl, Weather, Crops, SieveNorms } from '../../types/form';
 import styles from './SieveDataDetails.module.css';
 
 interface Props {
@@ -8,6 +8,9 @@ interface Props {
   setSelectedSieveId: React.Dispatch<React.SetStateAction<number | null>>;
   trenchControlData: TrenchControl[];
   selectedSieveRowId: number | null;
+  weatherData: Weather[];
+  cropsData: Crops[];
+  sieveNormsData: SieveNorms[];
 }
 
 const SieveDataDetails: React.FC<Props> = ({
@@ -16,52 +19,98 @@ const SieveDataDetails: React.FC<Props> = ({
   setSelectedSieveId,
   trenchControlData,
   selectedSieveRowId,
+  weatherData,
+  cropsData,
+  sieveNormsData,
 }) => {
   if (data.length === 0) {
     return <div className={styles.empty}>Нет подробных данных сито</div>;
   }
 
-  // Рассчёт средних значений по числовым полям
-  const numericFields = ['high', 'middle', 'low', 'pallet'] as const;
+  type NumericKeys = 'high' | 'middle' | 'low' | 'pallet';
+  const keys: NumericKeys[] = ['high', 'middle', 'low', 'pallet'];
   const averages: Record<string, string> = {};
 
-  for (const field of numericFields) {
-    const values = data
-      .map(d => d[field])
-      .filter((v): v is number => typeof v === 'number');
-    const avg = values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : null;
-    averages[field] = avg !== null ? avg.toFixed(2) : '-';
+  for (const key of keys) {
+    const percents = data.map(entry => {
+      const total =
+        (entry.high ?? 0) +
+        (entry.middle ?? 0) +
+        (entry.low ?? 0) +
+        (entry.pallet ?? 0);
+      return total > 0 ? ((entry[key] ?? 0) / total) * 100 : 0;
+    });
+
+    const avg =
+      percents.length > 0
+        ? percents.reduce((acc, val) => acc + val, 0) / percents.length
+        : 0;
+
+    averages[key] = percents.length > 0 ? avg.toFixed(1) + ' %' : '-';
   }
 
-  // Найдём связанный объект траншеи по selectedSieveRowId
-  const selectedSieve = trenchControlData.find((f) => f.id === selectedSieveRowId);
-  const relatedTrenchControl = selectedSieve
-    ? trenchControlData.find((tc) => tc.id === selectedSieve.id)
+  // траншея для нормы
+  const selectedTrench = trenchControlData.find(tc => tc.id === selectedSieveRowId);
+  const cropId = selectedTrench?.crop_id ?? null;
+
+  // проверка нормы (только для процентов!)
+  const isOutOfNormPercent = (
+    cropId: number | null,
+    key: NumericKeys,
+    percent: number | null
+  ): boolean => {
+    if (!cropId || percent == null) return false;
+    const norms = sieveNormsData.find(n => n.crop_id === cropId);
+    if (!norms) return false;
+
+    const lower = norms[`${key}_lower_limit`];
+    const upper = norms[`${key}_upper_limit`];
+
+    if (lower != null && percent < lower) return true;
+    if (upper != null && percent > upper) return true;
+
+    return false;
+  };
+
+  // средняя температура
+  const avgTemp = selectedTrench
+    ? (() => {
+        const temps = [
+          selectedTrench.left_edge_temp,
+          selectedTrench.middle_temp,
+          selectedTrench.right_edge_temp,
+        ].filter((t): t is number => typeof t === 'number');
+        return temps.length > 0
+          ? (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1)
+          : null;
+      })()
     : null;
 
   return (
     <div className={styles.wrapper}>
-      {relatedTrenchControl && (
+      {selectedTrench && (
         <div className={styles.headerBlock}>
           <h4>Информация о траншее</h4>
           <p>
             <strong>Дата:</strong>{' '}
-            {relatedTrenchControl.date
-              ? new Date(relatedTrenchControl.date).toLocaleDateString()
+            {selectedTrench.date
+              ? new Date(selectedTrench.date).toLocaleDateString()
               : '—'}
           </p>
           <p>
             <strong>Культура:</strong>{' '}
-            {relatedTrenchControl.crop ? relatedTrenchControl.crop : '—'}<br />
+            {cropsData.find(c => c.id === selectedTrench.crop_id)?.name ?? '—'}
+            <br />
             <strong>Погода:</strong>{' '}
-            {relatedTrenchControl.weather ? relatedTrenchControl.weather : '—'}<br />
+            {weatherData.find(w => w.id === selectedTrench.weather_id)?.name ??
+              '—'}
+            <br />
             <strong>Темп. в траншее:</strong>{' '}
-            {relatedTrenchControl.temp_trench !== undefined && relatedTrenchControl.temp_trench !== null
-              ? `${relatedTrenchControl.temp_trench}°C`
-              : '—'}<br />
+            {avgTemp !== null ? `${avgTemp}°C` : '—'}
+            <br />
             <strong>Вес:</strong>{' '}
-            {relatedTrenchControl.weight !== undefined && relatedTrenchControl.weight !== null
-              ? `${relatedTrenchControl.weight} кг`
+            {selectedTrench.weight != null
+              ? `${selectedTrench.weight} кг`
               : '—'}
           </p>
         </div>
@@ -70,10 +119,11 @@ const SieveDataDetails: React.FC<Props> = ({
       <table className={styles.table}>
         <thead>
           <tr>
-            <th colSpan={5}>Сито</th>
+            <th colSpan={6}>Сито</th>
           </tr>
           <tr>
             <th>Дата</th>
+            <th>Механизатор</th>
             <th>Верхнее</th>
             <th>Среднее</th>
             <th>Нижнее</th>
@@ -81,40 +131,82 @@ const SieveDataDetails: React.FC<Props> = ({
           </tr>
         </thead>
         <tbody>
-          {data.map(entry => (
-            <tr
-              key={entry.id}
-              onClick={() =>
-                setSelectedSieveId(prevId => (prevId === entry.id ? null : entry.id))
-              }
-              className={entry.id === selectedSieveId ? styles.selectedRow : styles.row}
-            >
-              <td>
-                {entry.date_time
-                  ? new Date(entry.date_time).toLocaleString(undefined, {
-                      hour12: false,
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })
-                  : '-'}
-              </td>
-              <td>{entry.high ?? '-'}</td>
-              <td>{entry.middle ?? '-'}</td>
-              <td>{entry.low ?? '-'}</td>
-              <td>{entry.pallet ?? '-'}</td>
-            </tr>
-          ))}
+          {data.map(entry => {
+            const total =
+              (entry.high ?? 0) +
+              (entry.middle ?? 0) +
+              (entry.low ?? 0) +
+              (entry.pallet ?? 0);
+
+            const renderCell = (key: NumericKeys, value: number | null) => {
+              if (value == null || total === 0) return <td>-</td>;
+              const percent = (value / total) * 100;
+              return (
+                <td
+                  className={
+                    isOutOfNormPercent(cropId, key, percent)
+                      ? styles.highlight
+                      : undefined
+                  }
+                >
+                  {percent.toFixed(1)} % ({value}г)
+                </td>
+              );
+            };
+
+            return (
+              <tr
+                key={entry.id}
+                onClick={() =>
+                  setSelectedSieveId(prevId =>
+                    prevId === entry.id ? null : entry.id
+                  )
+                }
+                className={
+                  entry.id === selectedSieveId
+                    ? styles.selectedRow
+                    : styles.row
+                }
+              >
+                <td>
+                  {entry.date_time
+                    ? new Date(entry.date_time).toLocaleString(undefined, {
+                        hour12: false,
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : '-'}
+                </td>
+                <td>{entry.machine_operator ?? '-'}</td>
+                {renderCell('high', entry.high)}
+                {renderCell('middle', entry.middle)}
+                {renderCell('low', entry.low)}
+                {renderCell('pallet', entry.pallet)}
+              </tr>
+            );
+          })}
         </tbody>
         <tfoot>
           <tr className={styles.averageRow}>
-            <td>Средние:</td>
-            <td>{averages.high}</td>
-            <td>{averages.middle}</td>
-            <td>{averages.low}</td>
-            <td>{averages.pallet}</td>
+            <td colSpan={2}>Средние:</td>
+            {keys.map(key => {
+              const avg = parseFloat(averages[key]);
+              return (
+                <td
+                  key={key}
+                  className={
+                    isOutOfNormPercent(cropId, key, isNaN(avg) ? null : avg)
+                      ? styles.highlight
+                      : undefined
+                  }
+                >
+                  {isNaN(avg) ? '-' : `${avg.toFixed(1)} %`}
+                </td>
+              );
+            })}
           </tr>
         </tfoot>
       </table>

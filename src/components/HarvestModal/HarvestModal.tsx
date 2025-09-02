@@ -86,10 +86,6 @@ const HarvestModal: React.FC<HarvestModalProps> = ({
     }
     };
 
-//   const handleEditHarvest = (harvest: Harvest) => {
-//     console.log(`Редактировать укос id=${harvest.id}, harvesting=${harvest.harvesting}`);
-//   };
-
     const handleEditHarvest = (harvest: Harvest) => {
         setEditingId(harvest.id);
         setEditedHarvesting(String(harvest.harvesting));
@@ -175,7 +171,6 @@ const HarvestModal: React.FC<HarvestModalProps> = ({
         <List>
           {sortedHarvests.map((harvest) => (
             <ListItem key={harvest.id}>
-              {/* <ListItemText primary={`Укос №${harvest.harvesting}`} /> */}
               {editingId === harvest.id ? (
                     <>
                         <TextField

@@ -1,4 +1,4 @@
-import type { Farms, Trenches, Sieve, TrenchControl, FossData, Harvest } from '../types/form'
+import type { Farms, Trenches, Sieve, TrenchControl, FossData, Harvest, Weather, Crops, FossNorms, SieveNorms, FossTemplate, SieveTemplate } from '../types/form'
 
 const API_BASE_URL = '/api/v1/trench';
 
@@ -122,5 +122,145 @@ export async function deleteHarvestById(harvestId: number): Promise<void> {
   if (!response.ok) {
     const data = await response.json();
     throw new Error(data.error || 'Ошибка удаления укоса');
+  }
+}
+
+export async function getWeather(): Promise<Weather[]> {
+    const url = `${API_BASE_URL}/weather`;
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Ошибка запроса: ${response.status}`)
+        }
+
+        const data: Weather[] = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Ошибка при получении данных:', error);
+        throw error;
+    }
+}
+
+export async function getCrops(): Promise<Crops[]> {
+    const url = `${API_BASE_URL}/crops`;
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Ошибка запроса: ${response.status}`)
+        }
+
+        const data: Crops[] = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Ошибка при получении данных:', error);
+        throw error;
+    }
+}
+
+export async function getFossNorms(): Promise<FossNorms[]> {
+    const url = `${API_BASE_URL}/foss_norms`;
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Ошибка запроса: ${response.status}`)
+        }
+
+        const data: FossNorms[] = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Ошибка при получении данных:', error);
+        throw error;
+    }
+}
+
+export async function getSieveNorms(): Promise<SieveNorms[]> {
+    const url = `${API_BASE_URL}/sieve_norms`;
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Ошибка запроса: ${response.status}`)
+        }
+
+        const data: SieveNorms[] = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Ошибка при получении данных:', error);
+        throw error;
+    }
+}
+
+export async function deleteFossNormsById(FossNormsId: number): Promise<void> {
+  const response = await fetch(`/api/v1/trench/foss_norms/${FossNormsId}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(data.error || 'Ошибка удаления Foss норм');
+  }
+}
+
+export async function deleteSieveNormsById(SieveNormsId: number): Promise<void> {
+  const response = await fetch(`/api/v1/trench/sieve_norms/${SieveNormsId}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(data.error || 'Ошибка удаления сито норм');
+  }
+}
+
+export async function getFossTemplate(): Promise<FossTemplate[]> {
+    const url = `${API_BASE_URL}/foss_norms_template`;
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Ошибка запроса: ${response.status}`)
+        }
+
+        const data: FossTemplate[] = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Ошибка при получении данных:', error);
+        throw error;
+    }
+}
+
+export async function deleteFossTemplateById(FossTemplateId: number): Promise<void> {
+  const response = await fetch(`/api/v1/trench/foss_norms_template/${FossTemplateId}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(data.error || 'Ошибка удаления сито норм');
+  }
+}
+
+export async function getSieveTemplate(): Promise<SieveTemplate[]> {
+    const url = `${API_BASE_URL}/sieve_norms_template`;
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Ошибка запроса: ${response.status}`)
+        }
+
+        const data: SieveTemplate[] = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Ошибка при получении данных:', error);
+        throw error;
+    }
+}
+
+export async function deleteSieveTemplateById(SieveTemplateId: number): Promise<void> {
+  const response = await fetch(`/api/v1/trench/sieve_norms_template/${SieveTemplateId}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(data.error || 'Ошибка удаления сито норм');
   }
 }

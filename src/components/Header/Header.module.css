@@ -9,7 +9,7 @@
   align-items: center;
   position: sticky;
   top: 0px;
-  z-index: 100;
+  z-index: 1000;
   /* width: 100%; */
 }
 
@@ -42,11 +42,13 @@
 }
 
 .icon {
-  /* margin-left: auto; */
    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-   width: 55px;
-   height: 55px; 
-   /* margin-right: 20px; */
+   width: 60px;
+   /* width: clamp(35px, 2.8vw, 65px); */
+   height: 60px; 
+   /* height: clamp(35px, 2.8vw, 65px); */
+   border-radius: 10px;
+   border: 0.05px groove rgb(161, 161, 161);
 }
 
 .icon:hover {
@@ -58,6 +60,10 @@
   margin-left: auto;
 }
 
-.iconBlock .icon:first-child {
-  margin-right: 20px;
+.iconBlock .icon {
+  margin-right: 8px;
+}
+
+.iconBlock .icon:last-child {
+  margin-right: 0px;
 }

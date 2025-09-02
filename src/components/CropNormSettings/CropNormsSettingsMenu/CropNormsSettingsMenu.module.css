@@ -1,0 +1,60 @@
+.container {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+  padding: 8px;
+  border-radius: 20px;
+}
+
+.block {
+  flex: 1;
+  max-width: 220px;
+  padding: 14px 20px;
+
+  background-color: transparent;
+  border: none;
+  border-radius: 14px;
+
+  font-size: 16px;
+  font-weight: 500;
+  color: #555;
+  cursor: pointer;
+  text-align: center;
+
+  transition: all 0.2s ease-in-out;
+}
+
+.block:hover {
+  background-color: #e8fce8;
+  color: #628564;
+}
+
+.active {
+  background-color: #5c975e;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
+
+.container {
+  position: relative;
+  padding-bottom: 12px;
+}
+
+.container::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 6px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255, 0, 0, 0.39) 25%,
+    rgba(255, 0, 0, 0.466) 75%,
+    transparent 100%
+  );
+  border-radius: 3px;
+}

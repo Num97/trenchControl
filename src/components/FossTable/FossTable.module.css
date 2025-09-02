@@ -22,3 +22,8 @@ th {
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
+
+.highlight {
+  color: #e74c3c;
+  font-weight: bold;
+}

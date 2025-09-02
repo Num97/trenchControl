@@ -1,6 +1,6 @@
 import React from 'react';
 import {useMemo, useState} from 'react';
-import type { TrenchControl, FossData, Sieve, Harvest } from '../../types/form';
+import type { TrenchControl, FossData, Sieve, Harvest, Weather, Crops, FossNorms, SieveNorms } from '../../types/form';
 import TrenchControlTable from '../TrenchControlTable/TrenchControlTable';
 import { AverageHarvestingLabDataComparison } from '../AverageHarvestingLabDataComparison/AverageHarvestingLabDataComparison';
 import FossTable from '../FossTable/FossTable';
@@ -16,6 +16,10 @@ interface Props {
   selectedTrenchControlId: number | null;
   setSelectedTrenchControlId: React.Dispatch<React.SetStateAction<number | null>>;
   harvestData: Harvest[];
+  wetherData: Weather[];
+  cropsData: Crops[];
+  fossNormsData: FossNorms[];
+  sieveNormsData: SieveNorms[];
 }
 
 const TrenchControlView: React.FC<Props> = ({
@@ -27,6 +31,10 @@ const TrenchControlView: React.FC<Props> = ({
   selectedTrenchControlId,
   setSelectedTrenchControlId,
   harvestData,
+  wetherData,
+  cropsData,
+  fossNormsData,
+  sieveNormsData,
 }) => {
   if (data.length === 0) {
     return <div className={styles.empty}>Данные заготовки траншеи еще не занесены</div>;
@@ -167,6 +175,8 @@ const TrenchControlView: React.FC<Props> = ({
                   data={groupTrenchControl}
                   selectedTrenchControlId={selectedTrenchControlId}
                   setSelectedTrenchControlId={setSelectedTrenchControlId}
+                  weatherData={wetherData}
+                  cropsData={cropsData}
                 />
               </div>
               <div className={styles.tableBlock}>
@@ -174,6 +184,7 @@ const TrenchControlView: React.FC<Props> = ({
                   data={groupTrenchControl}
                   foss={groupFoss}
                   onRowClick={onFossRowClick}
+                  fossNormsData={fossNormsData}
                 />
               </div>
               <div className={styles.tableBlock}>
@@ -181,6 +192,7 @@ const TrenchControlView: React.FC<Props> = ({
                   data={groupTrenchControl}
                   sieve={groupSieve}
                   onRowClick={onSieveRowClick}
+                  sieveNormsData={sieveNormsData}
                 />
               </div>
             </div>

@@ -70,3 +70,8 @@ thead {
   width: 100%;
   text-align: center;
 }
+
+.highlight {
+  color: #e74c3c;
+  font-weight: bold;
+}

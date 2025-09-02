@@ -22,3 +22,13 @@ th {
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
+
+.highlight {
+  color: #e74c3c;
+  font-weight: bold;
+}
+/* 
+.inRange {
+  color: #2e7d32;
+  font-weight: bold;
+} */

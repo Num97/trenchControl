@@ -1,4 +1,4 @@
-import type { Farms, Trenches, TrenchControl, FossData, Sieve, Harvest } from '../../types/form';
+import type { Farms, Trenches, TrenchControl, FossData, Sieve, Harvest, Weather, Crops } from '../../types/form';
 import styles from './Header.module.css';
 import { useEffect, useState } from 'react';
 
@@ -8,6 +8,8 @@ import SieveModal from '../SieveModal/SieveModal';
 import FarmSettingsModal from '../FarmSettingsModal/FarmSettingsModal';
 import FarmCardEditorModal from '../FarmCardEditorModal/FarmCardEditorModal';
 import HarvestModal from '../HarvestModal/HarvestModal';
+import WeatherModal from '../WeatherModal/WeatherModal';
+import CropsModal from '../CropsModal/CropsModal';
 
 interface HeaderProps {
   farms: Farms[];
@@ -52,6 +54,17 @@ interface HeaderProps {
   harvests: Harvest[];
   onDeleteHarvest: (id: number) => void;
   onUpdateHarvest: (updatedHarvest: Harvest) => void;
+  onAddWeather: (newHarvest: Weather) => void;
+  weathers: Weather[];
+  onDeleteWeather: (id: number) => void;
+  onUpdateWeather: (updatedHarvest: Weather) => void;
+  weatherData: Weather[];
+  cropsData: Crops[];
+  onAddCrop: (newHarvest: Crops) => void;
+  onDeleteCrop: (id: number) => void;
+  onUpdateCrop: (updatedHarvest: Crops) => void;
+  setShowCropNormSettings: React.Dispatch<React.SetStateAction<boolean>>;
+  showCropNormsSettings: boolean;
 }
 
 function Header({
@@ -96,7 +109,18 @@ function Header({
   onAddHarvest,
   harvests,
   onDeleteHarvest,
-  onUpdateHarvest
+  onUpdateHarvest,
+  onAddWeather,
+  weathers,
+  onDeleteWeather,
+  onUpdateWeather,
+  weatherData,
+  cropsData,
+  onAddCrop,
+  onDeleteCrop,
+  onUpdateCrop,
+  setShowCropNormSettings,
+  showCropNormsSettings,
   
 }: HeaderProps) {
   const currentYear = new Date().getFullYear();
@@ -117,6 +141,8 @@ function Header({
   const [confirmFarmDelete, setConfirmFarmDelete] = useState(false);
 
   const [isHarvestModalOpen, setIsHarvestModalOpen] = useState(false);
+  const [isWeatherModalOpen, setIsWeatherModalOpen] = useState(false);
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
 
   const canEdit =
     (selectedFossRowId !== null && selectedFossId !== null && !showFarmSettings) ||
@@ -127,7 +153,14 @@ function Header({
   const canDelete = canEdit;
 
   const handleShowFarmSettings = () => {
+    setShowCropNormSettings(false);
     setShowFarmSettings((prev) => !prev);
+  };
+
+  // Отражаем компонент настроек
+  const handleShowCropNormSettings = () => {
+    setShowFarmSettings(false);
+    setShowCropNormSettings((prev) => !prev);
   };
 
   const handleAddClick = () => {
@@ -159,13 +192,20 @@ function Header({
     setOpenFarmModal(false);
   };
 
-  //укос
   const handleScytheClick = () => {
     if (selectedTrenchId !== null) {
       setIsHarvestModalOpen(true);
     } else {
       console.warn('Сначала выберите траншею');
     }
+  };
+
+  const handleWeatherClick = () => {
+      setIsWeatherModalOpen(true);
+  };
+  
+  const handleCropClick = () => {
+      setIsCropModalOpen(true);
   };
 
   const handleEditClick = () => {
@@ -412,16 +452,33 @@ function Header({
         ))}
       </select>
 
-
-      <button className={styles.addButton} onClick={handleAddClick}>{showFarmSettings ? 'Добавить хозяйство' : 'Добавить'}</button>
-      <button className={styles.editButton} onClick={handleEditClick} disabled={!canEdit}>Редактировать</button>
-      <button className={styles.deleteButton} onClick={handleDeleteClick} disabled={!canDelete}>Удалить</button>
+        {!showCropNormsSettings && (
+          <>
+        <button className={styles.addButton} onClick={handleAddClick}>{showFarmSettings ? 'Добавить хозяйство' : 'Добавить'}</button>
+        <button className={styles.editButton} onClick={handleEditClick} disabled={!canEdit}>Редактировать</button>
+        <button className={styles.deleteButton} onClick={handleDeleteClick} disabled={!canDelete}>Удалить</button>
+        </>
+        )}
 
       {showBackButton && onBackClick && (
         <button onClick={onBackClick} className={styles.backButton}>Назад</button>
       )}
 
       <div className={styles.iconBlock}>
+        <img
+          src="/static/img/trench/corn.svg"
+          alt="Settings"
+          className={`${styles.icon} ${styles.corn}`}
+          onClick={handleCropClick}
+        />
+
+        <img
+          src="/static/img/trench/weather.svg"
+          alt="Settings"
+          className={styles.icon}
+          onClick={handleWeatherClick}
+        />
+
         <img
           src="/static/img/trench/scythe.svg"
           alt="Settings"
@@ -430,10 +487,17 @@ function Header({
         />
 
         <img
-          src="/static/img/trench/wrench.svg"
+          src="/static/img/trench/farm.svg"
           alt="Settings"
           className={styles.icon}
           onClick={handleShowFarmSettings}
+        />
+
+        <img
+          src="/static/img/trench/rules.svg"
+          alt="Settings"
+          className={styles.icon}
+          onClick={handleShowCropNormSettings}
         />
       </div>
 
@@ -449,6 +513,8 @@ function Header({
         initialData={initialData}
         harvestOptions={harvestOptions}
         onAddHarvest={onAddHarvest}
+        weatherData={weatherData}
+        cropsData={cropsData}
       />
 
       <FossModal
@@ -521,6 +587,24 @@ function Header({
         onAddHarvest={onAddHarvest}
         onDeleteHarvest={onDeleteHarvest}
         onUpdateHarvest={onUpdateHarvest}
+      />
+
+      <WeatherModal
+        open={isWeatherModalOpen}
+        onClose={() => setIsWeatherModalOpen(false)}
+        weathers={weathers}
+        onAddWeather={onAddWeather}
+        onDeleteWeather={onDeleteWeather}
+        onUpdateWeather={onUpdateWeather}
+      />
+
+      <CropsModal
+        open={isCropModalOpen}
+        onClose={() => setIsCropModalOpen(false)}
+        crops={cropsData}
+        onAddCrop={onAddCrop}
+        onDeleteCrop={onDeleteCrop}
+        onUpdateCrop={onUpdateCrop}
       />
     </header>
   );

@@ -45,6 +45,7 @@ const SieveModal: React.FC<SieveModalProps> = ({
     middle: '',
     low: '',
     pallet: '',
+    machine_operator: '',
   });
 
   useEffect(() => {
@@ -56,6 +57,7 @@ const SieveModal: React.FC<SieveModalProps> = ({
           middle: existingSieveData.middle?.toString() ?? '',
           low: existingSieveData.low?.toString() ?? '',
           pallet: existingSieveData.pallet?.toString() ?? '',
+          machine_operator: existingSieveData.machine_operator?.toString() ?? '',
         });
       } else {
         setFormData({
@@ -64,6 +66,7 @@ const SieveModal: React.FC<SieveModalProps> = ({
           middle: '',
           low: '',
           pallet: '',
+          machine_operator: '',
         });
       }
     }
@@ -87,6 +90,7 @@ const SieveModal: React.FC<SieveModalProps> = ({
       middle: formData.middle ? parseFloat(formData.middle) : null,
       low: formData.low ? parseFloat(formData.low) : null,
       pallet: formData.pallet ? parseFloat(formData.pallet) : null,
+      machine_operator: formData.machine_operator || null,
     };
 
     try {
@@ -150,10 +154,11 @@ const SieveModal: React.FC<SieveModalProps> = ({
             required
             InputProps={{ readOnly: true }}
           />
-          <TextField label="Верхнее" name="high" type="number" value={formData.high} onChange={handleChange} fullWidth />
-          <TextField label="Среднее" name="middle" type="number" value={formData.middle} onChange={handleChange} fullWidth />
-          <TextField label="Нижнее" name="low" type="number" value={formData.low} onChange={handleChange} fullWidth />
-          <TextField label="Поддон" name="pallet" type="number" value={formData.pallet} onChange={handleChange} fullWidth />
+          <TextField label="Механизатор" name="machine_operator" value={formData.machine_operator} onChange={handleChange} fullWidth />
+          <TextField label="Верхнее (граммы)" name="high" type="number" value={formData.high} onChange={handleChange} fullWidth />
+          <TextField label="Среднее (граммы)" name="middle" type="number" value={formData.middle} onChange={handleChange} fullWidth />
+          <TextField label="Нижнее (граммы)" name="low" type="number" value={formData.low} onChange={handleChange} fullWidth />
+          <TextField label="Поддон (граммы)" name="pallet" type="number" value={formData.pallet} onChange={handleChange} fullWidth />
         </Box>
       </DialogContent>
       <DialogActions>

@@ -1,0 +1,77 @@
+.card {
+  background-color: #d6ddc9;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  padding: 16px;
+  margin-bottom: 16px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 0.5px solid gray;
+  min-width: 300px;
+  max-width: 640px;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+
+.cropName {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  text-decoration: underline;
+}
+
+.normsSection {
+  margin-top: 12px;
+}
+
+.normsSection h4 {
+  margin-bottom: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.normsTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.normsTableWrapper {
+  background: #fafafa;;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  margin-top: 8px;
+}
+
+.normsTable th,
+.normsTable td {
+  border: 1px solid #ddd;
+  padding: 6px 10px;
+  text-align: center;
+}
+
+.normsTable th {
+  background-color: #f1f1f1;
+  font-weight: 600;
+}
+
+.empty {
+  font-style: italic;
+  color: #888;
+}
+
+.normsContainer {
+  display: flex;
+  gap: 24px; 
+  flex-wrap: wrap; 
+}
+
+.normsSection {
+  flex: 1; 
+  min-width: 300px; 
+}
